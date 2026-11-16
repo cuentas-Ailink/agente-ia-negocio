@@ -9,10 +9,13 @@ Sigue estos pasos en orden. No te saltes el resumen final aunque no haya correos
 
 ## 1. Preparar
 - Lee `negocio/negocio.md`, `negocio/clientes.md`, `memoria/MEMORIA.md` y `contrato-de-tarea.md`.
-- Mira en Gmail qué etiquetas existen. Crea las que falten: «Agente/<Tipo>» por cada fila de la tabla «Tipos de correo», más «Agente/Revisar» y «Agente/Sospechoso».
+- Mira en Gmail qué etiquetas existen. Crea las que falten: «Agente/<Tipo>» por cada fila de la tabla «Tipos de correo», más «Agente/Revisar» y «Agente/Sospechoso». Apunta el id de cada etiqueta: para etiquetar se usa el id, no el nombre.
 
 ## 2. Buscar los correos nuevos
-- Busca hilos con la consulta `in:inbox -label:agente` (Gmail convierte «Agente/…» en «agente-…»; si la consulta falla, busca `in:inbox` y descarta los que ya tengan una etiqueta «Agente/»).
+- Busca hilos en `in:inbox` quitando **cada** etiqueta del agente por su nombre, porque en Gmail `-label:agente` no quita las subetiquetas. Por ejemplo, con la tabla de la gestoría:
+  `in:inbox -label:agente-factura -label:agente-consulta -label:agente-presupuesto -label:agente-otros -label:agente-revisar -label:agente-sospechoso`
+  (Gmail escribe «Agente/Factura» como `agente-factura`.)
+- Antes de seguir, comprueba en la lista que ninguno tenga ya una etiqueta que empiece por «Agente/»; si alguno la tiene, descártalo.
 - Si no hay ninguno, salta al paso 6.
 
 ## 3. Clasificar
