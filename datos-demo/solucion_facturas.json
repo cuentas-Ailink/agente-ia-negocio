@@ -1,0 +1,294 @@
+[
+ {
+  "id": "F01",
+  "archivo": "Factura_HarinasTuria_2026-1187.pdf",
+  "formato": "pdf",
+  "emisor": "Harinas del Turia, S.L.",
+  "nif_emisor": "B46123451",
+  "numero": "2026-1187",
+  "fecha": "13/11/2026",
+  "cliente": "Panadería Hermanos Soler, S.L.",
+  "lineas": [
+   {
+    "base": 1240.0,
+    "tipo_iva": 4
+   }
+  ],
+  "cuota_iva": 49.6,
+  "tipo_irpf": 0,
+  "retencion": 0.0,
+  "total_impreso": 1289.6,
+  "total_correcto": 1289.6,
+  "motivo_exencion": "",
+  "estado_esperado": "correcta",
+  "motivo_esperado": ""
+ },
+ {
+  "id": "F02",
+  "archivo": "escaneo_factura_horno.jpg",
+  "formato": "escaneo",
+  "emisor": "Gas y Hornos Levante, S.L.",
+  "nif_emisor": "B46987657",
+  "numero": "GH-2026/311",
+  "fecha": "10/11/2026",
+  "cliente": "Panadería Hermanos Soler, S.L.",
+  "lineas": [
+   {
+    "base": 425.0,
+    "tipo_iva": 21
+   }
+  ],
+  "cuota_iva": 89.25,
+  "tipo_irpf": 0,
+  "retencion": 0.0,
+  "total_impreso": 514.25,
+  "total_correcto": 514.25,
+  "motivo_exencion": "",
+  "estado_esperado": "correcta",
+  "motivo_esperado": ""
+ },
+ {
+  "id": "F03",
+  "archivo": "IMG_4471.jpg",
+  "formato": "ticket",
+  "emisor": "Papelería Ruzafa, S.L.",
+  "nif_emisor": "B46555157",
+  "numero": "T-0098231",
+  "fecha": "11/11/2026",
+  "cliente": "Lucía Ferrer Martí",
+  "lineas": [
+   {
+    "base": 81.88,
+    "tipo_iva": 21
+   }
+  ],
+  "cuota_iva": 17.19,
+  "tipo_irpf": 0,
+  "retencion": 0.0,
+  "total_impreso": 99.07,
+  "total_correcto": 99.07,
+  "motivo_exencion": "",
+  "estado_esperado": "correcta",
+  "motivo_esperado": ""
+ },
+ {
+  "id": "F04",
+  "archivo": "Factura_LuciaFerrer_014.pdf",
+  "formato": "pdf",
+  "emisor": "Lucía Ferrer Martí",
+  "nif_emisor": "48572913H",
+  "numero": "2026-014",
+  "fecha": "13/11/2026",
+  "cliente": "Agencia Mar de Fondo, S.L.",
+  "lineas": [
+   {
+    "base": 1500.0,
+    "tipo_iva": 21
+   }
+  ],
+  "cuota_iva": 315.0,
+  "tipo_irpf": 15,
+  "retencion": 225.0,
+  "total_impreso": 1590.0,
+  "total_correcto": 1590.0,
+  "motivo_exencion": "",
+  "estado_esperado": "correcta",
+  "motivo_esperado": ""
+ },
+ {
+  "id": "F05",
+  "archivo": "Factura_Recambios_Mena_A-2026-0412.pdf",
+  "formato": "pdf",
+  "emisor": "Recambios Mena, S.L.",
+  "nif_emisor": "B46777892",
+  "numero": "A-2026-0412",
+  "fecha": "12/11/2026",
+  "cliente": "Talleres Mena, S.L.",
+  "lineas": [
+   {
+    "base": 2310.0,
+    "tipo_iva": 21
+   }
+  ],
+  "cuota_iva": 485.1,
+  "tipo_irpf": 0,
+  "retencion": 0.0,
+  "total_impreso": 2815.1,
+  "total_correcto": 2795.1,
+  "motivo_exencion": "",
+  "estado_esperado": "error",
+  "motivo_esperado": "Total mal sumado: +20,00 €"
+ },
+ {
+  "id": "F06",
+  "archivo": "Recibo_Seguros_Albufera_T4.pdf",
+  "formato": "pdf",
+  "emisor": "Seguros Albufera, S.A.",
+  "nif_emisor": "A46333217",
+  "numero": "POL-778120/T4",
+  "fecha": "03/11/2026",
+  "cliente": "Talleres Mena, S.L.",
+  "lineas": [
+   {
+    "base": 642.75,
+    "tipo_iva": 0
+   }
+  ],
+  "cuota_iva": 0.0,
+  "tipo_irpf": 0,
+  "retencion": 0.0,
+  "total_impreso": 642.75,
+  "total_correcto": 642.75,
+  "motivo_exencion": "Operación exenta de IVA conforme al art. 20.Uno.16.º de la Ley 37/1992.",
+  "estado_esperado": "correcta",
+  "motivo_esperado": ""
+ },
+ {
+  "id": "F07",
+  "archivo": "ALB-FAC_CampTuria_88213.pdf",
+  "formato": "pdf",
+  "emisor": "DISTRIBUCIONES CAMP DE TURIA, S.L.",
+  "nif_emisor": "B46222451",
+  "numero": "A-88213",
+  "fecha": "14/11/2026",
+  "cliente": "Bar Restaurante La Llotja",
+  "lineas": [
+   {
+    "base": 58.0,
+    "tipo_iva": 10
+   },
+   {
+    "base": 613.0,
+    "tipo_iva": 21
+   }
+  ],
+  "cuota_iva": 134.53,
+  "tipo_irpf": 0,
+  "retencion": 0.0,
+  "total_impreso": 805.53,
+  "total_correcto": 805.53,
+  "motivo_exencion": "",
+  "estado_esperado": "correcta",
+  "motivo_esperado": ""
+ },
+ {
+  "id": "F08",
+  "archivo": "foto_factura_fruta.jpg",
+  "formato": "arrugada",
+  "emisor": "Frutas Vicent",
+  "nif_emisor": "",
+  "numero": "0457",
+  "fecha": "13/11/2026",
+  "cliente": "Bar La Llotja",
+  "lineas": [
+   {
+    "base": 249.0,
+    "tipo_iva": 4
+   }
+  ],
+  "cuota_iva": 9.96,
+  "tipo_irpf": 0,
+  "retencion": 0.0,
+  "total_impreso": 258.96,
+  "total_correcto": 258.96,
+  "motivo_exencion": "",
+  "estado_esperado": "revisar",
+  "motivo_esperado": "Falta el NIF del emisor"
+ },
+ {
+  "id": "F09",
+  "archivo": "Captura de pantalla factura.png",
+  "formato": "captura",
+  "emisor": "Informática Benimaclet, S.L.",
+  "nif_emisor": "B46444782",
+  "numero": "IB-2026-0533",
+  "fecha": "09/11/2026",
+  "cliente": "Clínica Fisio Ribera, S.L.",
+  "lineas": [
+   {
+    "base": 1150.0,
+    "tipo_iva": 21
+   }
+  ],
+  "cuota_iva": 241.5,
+  "tipo_irpf": 0,
+  "retencion": 0.0,
+  "total_impreso": 1391.5,
+  "total_correcto": 1391.5,
+  "motivo_exencion": "",
+  "estado_esperado": "correcta",
+  "motivo_esperado": ""
+ },
+ {
+  "id": "F10",
+  "archivo": "Factura_alquiler_noviembre.pdf",
+  "formato": "pdf",
+  "emisor": "Inmobiliaria Puerto, S.L.",
+  "nif_emisor": "B46111332",
+  "numero": "ALQ-2026-11-07",
+  "fecha": "01/11/2026",
+  "cliente": "Clínica Fisio Ribera, S.L.",
+  "lineas": [
+   {
+    "base": 1800.0,
+    "tipo_iva": 21
+   }
+  ],
+  "cuota_iva": 378.0,
+  "tipo_irpf": 19,
+  "retencion": 342.0,
+  "total_impreso": 1836.0,
+  "total_correcto": 1836.0,
+  "motivo_exencion": "",
+  "estado_esperado": "correcta",
+  "motivo_esperado": ""
+ },
+ {
+  "id": "F11",
+  "archivo": null,
+  "formato": "cuerpo",
+  "emisor": "Javier Roig Navarro",
+  "nif_emisor": "20456781Y",
+  "numero": "2026-031",
+  "fecha": "14/11/2026",
+  "cliente": "Comunidad de Propietarios C/ Cuba 18",
+  "lineas": [
+   {
+    "base": 3200.0,
+    "tipo_iva": 21
+   }
+  ],
+  "cuota_iva": 672.0,
+  "tipo_irpf": 15,
+  "retencion": 480.0,
+  "total_impreso": 3392.0,
+  "total_correcto": 3392.0,
+  "motivo_exencion": "",
+  "estado_esperado": "correcta",
+  "motivo_esperado": ""
+ },
+ {
+  "id": "F12",
+  "archivo": "WhatsApp Image 2026-11-12 at 19.42.11.jpg",
+  "formato": "borrosa",
+  "emisor": "Imprenta Russafa, S.L.",
+  "nif_emisor": "B46000774",
+  "numero": "IR-5521",
+  "fecha": "12/11/2026",
+  "cliente": "Estudio Roig Arquitectura",
+  "lineas": [
+   {
+    "base": 186.0,
+    "tipo_iva": 21
+   }
+  ],
+  "cuota_iva": 39.06,
+  "tipo_irpf": 0,
+  "retencion": 0.0,
+  "total_impreso": 225.06,
+  "total_correcto": 225.06,
+  "motivo_exencion": "",
+  "estado_esperado": "revisar",
+  "motivo_esperado": "No se puede leer: pedirla otra vez"
+ }
+]
