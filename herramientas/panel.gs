@@ -416,7 +416,7 @@ svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .selector .i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--sec);pointer-events:none;width:16px;height:16px}
 .selector select{appearance:none;-webkit-appearance:none;border:1px solid var(--linea-f);background:var(--tarjeta) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236c6c68' fill='none' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 12px center;border-radius:10px;padding:8px 34px 8px 36px;font-size:13px;font-weight:500;cursor:pointer}
 .selector select:hover{border-color:#bdbdb8}
-.cuerpo{padding:28px 28px 40px;max-width:1240px}
+.cuerpo{padding:28px 32px 40px;max-width:1680px}
 
 /* ---- Resumen */
 .cabeza{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}
@@ -649,13 +649,13 @@ textarea:focus{outline:0}
   .resumen-orden .kpis{order:2;margin:0;gap:10px}
   .resumen-orden .rejilla{display:contents}
   .resumen-orden .persona{order:1}
-  .resumen-orden .columna.der{order:3;display:flex}
+  .resumen-orden .columna.der{order:3;display:flex;align-items:stretch}
   .kpi{padding:14px 14px 12px}
   .kpi .v{font-size:28px;margin:12px 0 10px}
   .kpi .metro{display:none}
   .aviso{align-items:start}
   .aviso .acc .boton{display:none}
-  .cuenta .larga{display:none}
+  .cuenta .larga,.kpi .larga,.segm .corta-no{display:none}
   .estados{grid-template-columns:110px minmax(0,1fr);gap:12px;padding:8px 12px 14px}
   .donut,.donut svg{width:110px;height:110px}
   .vista{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
@@ -674,6 +674,8 @@ textarea:focus{outline:0}
   .facturas-tabla td.col-dif{grid-row:2;grid-column:2}
   .facturas-tabla td.col-dif .gris{display:none}
   .barra-f .segm{flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none}
+  .barra-f .segm{display:flex;width:100%}
+  .barra-f .segm button{flex:1;text-transform:capitalize;padding:6px 6px}
   .chat-cab .nombre .chip{display:none}
   .facturas-tabla tbody tr:first-child{border-top:0}
   .facturas-tabla td{padding:0;border:0;background:transparent!important}
@@ -905,15 +907,15 @@ function pintarResumen(){
   var kpis = el('div',{class:'kpis'});
   kpis.append(
     el('button',{class:'kpi', onclick:function(){ verTodos = true; ir('correos'); }},
-      el('div',{class:'l'}, 'Correos procesados', el('span',{class:'ic'}, ico('sobre'))),
+      el('div',{class:'l'}, el('span',{}, 'Correos', el('span',{class:'larga'}, ' procesados')), el('span',{class:'ic'}, ico('sobre'))),
       el('div',{class:'v'}, String(t.procesados != null ? t.procesados : correos.length)),
       el('div',{class:'pie'}, el('span',{}, el('b',{}, String(conBorr.length)), ' con borrador'), metro(conBorr.length, correos.length))),
     el('button',{class:'kpi', onclick:function(){ filtroFact = 'todas'; ir('facturas'); }},
-      el('div',{class:'l'}, 'Facturas revisadas', el('span',{class:'ic'}, ico('facturas'))),
+      el('div',{class:'l'}, el('span',{}, 'Facturas', el('span',{class:'larga'}, ' revisadas')), el('span',{class:'ic'}, ico('facturas'))),
       el('div',{class:'v'}, String(facturas.length)),
       el('div',{class:'pie'}, el('span',{}, el('b',{}, String(correctas)), ' correctas'), metro(correctas, facturas.length))),
     el('button',{class:'kpi', onclick:function(){ verTodos = false; ir('correos'); }},
-      el('div',{class:'l'}, 'Borradores listos', el('span',{class:'ic'}, ico('lapiz'))),
+      el('div',{class:'l'}, el('span',{}, 'Borradores', el('span',{class:'larga'}, ' listos')), el('span',{class:'ic'}, ico('lapiz'))),
       el('div',{class:'v'}, String(conBorr.length)),
       el('div',{class:'pie'}, el('span',{}, el('b',{}, String(enviados)), ' ya enviados'), metro(enviados, conBorr.length))));
   var mins = t.minutos_ahorrados || 0;
@@ -1027,9 +1029,9 @@ function pintarFacturas(){
     el('div',{class:'sub'}, d && !d.provisional ? fechaLarga(dia) + ' · revisadas con un programa que hace las cuentas' : 'Aparecen cuando el agente deja el resumen de su pasada.'))));
   var est = function(c){ return (c.factura && c.factura.estado) || 'revisar'; };
   var segm = el('div',{class:'segm'});
-  [['todas','Todas'],['error','Con error'],['revisar','Por revisar'],['correcta','Correctas']].forEach(function(x){
+  [['todas','Todas'],['error','Error','Con '],['revisar','Revisar','Por '],['correcta','Correctas']].forEach(function(x){
     var n = x[0] === 'todas' ? todas.length : todas.filter(function(c){ return est(c) === x[0]; }).length;
-    segm.append(el('button',{'aria-pressed': String(filtroFact === x[0]), onclick:function(){ filtroFact = x[0]; google.script.history.push({vista:'facturas'}, {vista:'facturas'}); pintarFacturas(); }}, x[1], el('span',{class:'c'}, String(n))));
+    segm.append(el('button',{'aria-pressed': String(filtroFact === x[0]), onclick:function(){ filtroFact = x[0]; google.script.history.push({vista:'facturas'}, {vista:'facturas'}); pintarFacturas(); }}, x[2] ? el('span',{class:'corta-no'}, x[2]) : null, x[2] ? x[1].toLowerCase() : x[1], el('span',{class:'c'}, String(n))));
   });
   cuerpo.append(el('div',{class:'barra-f'}, segm));
   var orden = {error:0, revisar:1, correcta:2};
@@ -1168,7 +1170,8 @@ function revision(r){
   var f = r.factura, e = f.estado || 'revisar', cls = e === 'correcta' ? 'ok' : (e === 'error' ? 'err' : 'aten');
   var caja = el('dl',{class:'revision'},
     el('div',{class:'cab'}, ico('facturas'), 'Revisión del agente', el('span',{class:'pild ' + cls}, ESTADO_F[e] || 'Revisar')),
-    el('dt',{}, (f.emisor || 'Proveedor') + (f.numero ? ' · N.º ' + f.numero : '')), el('dd',{}, eur(f.total_factura)));
+    (f.emisor || f.total_factura != null) ? el('dt',{}, (f.emisor || 'Proveedor') + (f.numero ? ' · N.º ' + f.numero : '')) : null,
+    (f.emisor || f.total_factura != null) ? el('dd',{}, eur(f.total_factura)) : null);
   if (f.diferencia){ caja.append(el('dt',{}, 'Total correcto'), el('dd',{}, eur(f.total_correcto)), el('dt',{}, 'Diferencia'), el('dd',{class:'dif err'}, (f.diferencia > 0 ? '+' : '') + eur(f.diferencia))); }
   if (e !== 'correcta' && f.motivos && f.motivos.length) caja.append(el('div',{class:'mot ' + cls}, f.motivos.join(' ')));
   return caja;
