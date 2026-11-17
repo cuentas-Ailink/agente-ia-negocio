@@ -39,7 +39,9 @@ Si «estado.py» dice que hay algo mal montado, ejecuta `python3 herramientas/co
 
 ## 4. Chat para contestar (opcional)
 
-Explica para qué sirve: «Para leer cada correo como un chat y enviar el borrador con un clic, sin buscarlo en Gmail». Si lo quiere, dale estos pasos, tal cual:
+Explica para qué sirve: «Para leer cada correo como un chat y enviar el borrador con un clic, sin buscarlo en Gmail». Pregunta si ya lo tiene instalado: si es así, solo pide la URL que acaba en /exec.
+
+Si lo quiere instalar, escribe estos pasos **como lista numerada, uno por línea, con los nombres de los botones entre comillas**. No los resumas en un párrafo: la persona los va siguiendo mientras mira la pantalla.
 
 1. Con la cuenta de Gmail del negocio, entra en script.google.com → «Nuevo proyecto» y llámalo «Chat del correo».
 2. Borra lo que haya y pega el contenido de `herramientas/chat.gs`. Para que no tenga que abrir el archivo, ofrécete a copiarlo al portapapeles con `pbcopy < herramientas/chat.gs` (en Mac).
