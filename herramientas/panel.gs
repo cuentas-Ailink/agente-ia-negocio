@@ -341,6 +341,14 @@ function sumarPorCliente_(libro) {
 }
 
 /** Para empezar con una hoja vacía (por ejemplo, después de volver a cargar la demo): la próxima vez se crea otra. */
+/** Para grabar o probar: que la respuesta automática de WhatsApp vuelva a salir ya a todos, sin esperar las 6 horas. */
+function reiniciarRespuestasAutomaticas() {
+  const props = PropertiesService.getScriptProperties();
+  const claves = props.getKeys().filter(k => k.indexOf('wa_a_') === 0);
+  claves.forEach(k => props.deleteProperty(k));
+  Logger.log('Listo: la respuesta automática vuelve a salir a ' + claves.length + ' número(s) en su próximo mensaje.');
+}
+
 function empezarHojaDeCero() {
   PropertiesService.getUserProperties().deleteProperty('hoja_facturas');
   Logger.log('Listo. La próxima vez que abras el panel se crea una hoja nueva. La anterior sigue en tu Drive: bórrala si no la quieres.');
