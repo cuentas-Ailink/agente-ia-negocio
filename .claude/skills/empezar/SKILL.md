@@ -78,7 +78,8 @@ Después, los pasos **como lista numerada, uno por línea**:
 6. En el Worker → «Settings» → «Variables and Secrets» → «Add». Crea PANEL (tipo «Text») con el valor del panel, y APP_SECRET (tipo «Secret») con la clave secreta de la app → «Deploy».
 7. Abre la dirección del Worker (…workers.dev). Tiene que decir «Todo listo». Si dice otra cosa, el propio mensaje explica qué falta.
 8. En Meta → WhatsApp → «Configuración» → «Webhook»: pon la dirección del Worker y el token de verificación del panel → «Verificar y guardar». En «Campos del webhook», suscríbete a «messages».
-9. Prueba: que se mande un WhatsApp y una foto al número del negocio. En un minuto tienen que aparecer en el panel, en «Correos», con la etiqueta WhatsApp.
+9. Publica la app de Meta («Publicar» arriba en la app; te pide una URL de política de privacidad, vale una página de Notion o de la web). Sin publicar, Meta verifica la dirección pero no manda ni un mensaje de verdad, ni siquiera del dueño de la app: es el fallo más habitual.
+10. Prueba: que se mande un WhatsApp y una foto al número del negocio. En un minuto tienen que aparecer en el panel, en «Correos», con la etiqueta WhatsApp.
 
 Si cualquiera de los pasos da error, pídele una captura.
 

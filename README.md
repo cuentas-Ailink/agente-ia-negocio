@@ -59,7 +59,7 @@ Las facturas revisadas pasan solas a la hoja de Google «Facturas revisadas» (f
 Las fotos de facturas, los PDF y las preguntas que te mandan por WhatsApp entran en Gmail como un correo más («WhatsApp · Nombre», con el archivo adjunto). El agente los revisa en su pasada y deja la respuesta escrita, corta y sin firma. Tú la envías desde el panel con «Enviar por WhatsApp». Al cliente le llega al momento un «Recibido, gracias» fijo, que puedes cambiar o quitar.
 
 Qué hace falta:
-- Una app de Meta con WhatsApp (developers.facebook.com). La crea el negocio con su Facebook: una cuenta real y con tiempo, no recién creada. De ahí salen el token permanente, el identificador del número y la clave secreta de la app.
+- Una app de Meta con WhatsApp (developers.facebook.com). La crea el negocio con su Facebook: una cuenta real y con tiempo, no recién creada. De ahí salen el token permanente, el identificador del número y la clave secreta de la app. La app tiene que estar publicada: sin publicar, Meta no manda los mensajes de verdad.
 - Una cuenta gratis de Cloudflare, para el puente. Meta no acepta avisar directamente a Google: el puente recibe el aviso, comprueba que es de Meta y se lo pasa al panel. No guarda nada.
 
 Los pasos están en el propio panel (nombre del negocio → WhatsApp) y al principio de `herramientas/whatsapp-puente.js`. Si escribes «quiero WhatsApp», Claude te guía.

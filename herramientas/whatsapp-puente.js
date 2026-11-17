@@ -15,6 +15,8 @@
  * 4. Abre la dirección del Worker (https://whatsapp-negocio.<tu-cuenta>.workers.dev). Tiene que decir «Todo listo».
  * 5. En Meta → WhatsApp → Configuración → Webhook: esa dirección y el token de verificación que te da el panel.
  *    «Verificar y guardar» y, en «Campos del webhook», suscríbete a «messages».
+ * 6. Publica la app de Meta. Sin publicar, Meta solo manda los avisos de prueba del panel de Meta,
+ *    nunca los mensajes de verdad (ni los del dueño de la app).
  */
 
 const ESPERA_MAX_MS = 15000;

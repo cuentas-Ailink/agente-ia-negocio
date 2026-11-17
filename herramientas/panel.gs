@@ -1362,6 +1362,7 @@ textarea:focus{outline:0}
             <span class="estado" id="wa-dir-aviso"></span></li>
           <li>En Cloudflare, el puente (whatsapp-puente.js). Variable PANEL:<code id="wa-panel"></code></li>
           <li>En Meta → WhatsApp → Configuración → Webhook: la dirección del puente y este token de verificación:<code id="wa-clave"></code></li>
+          <li>En «Campos del webhook», suscríbete a «messages» y publica la app de Meta: sin publicar no llega ningún mensaje de verdad.</li>
         </ol>
       </div>
     </div>
