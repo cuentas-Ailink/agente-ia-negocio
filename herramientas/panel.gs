@@ -176,6 +176,7 @@ function datosHilo(id) {
   const yo = Session.getEffectiveUser().getEmail().toLowerCase();
   const hilo = GmailApp.getThreadById(id);
   if (!hilo) throw new Error('No encuentro esta conversación. Puede que se haya borrado.');
+  if (hilo.isInTrash()) throw new Error('Este correo está en la papelera. Puede que se haya vuelto a cargar o borrado.');
   const todos = hilo.getMessages();
   const enGmail = hilosConBorrador_()[id] || null;
   let borrador = null;
