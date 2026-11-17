@@ -67,6 +67,8 @@ Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y, si aún
 
 Explícalo en 2 líneas: la pasada la hace Claude en sus servidores cada mañana, aunque el ordenador esté apagado. A cambio necesita una cuenta de GitHub, donde vive una copia privada de esta carpeta con su negocio.
 
+Es una opción, no la única: si ya tiene un servidor propio u otra forma de lanzar tareas cada mañana, vale igual. Lo único que hace falta es lanzar «Haz la pasada diaria» en esta carpeta con Claude y Gmail conectado. No le empujes a GitHub si prefiere otra cosa: ayúdale con la que elija.
+
 Los pasos **como lista numerada**:
 
 1. En github.com, con su cuenta: «New repository», un nombre (por ejemplo agente-correo-minegocio), «Private» y «Create repository».

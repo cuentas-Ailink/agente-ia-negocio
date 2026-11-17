@@ -20,7 +20,7 @@ El agente te lleva paso a paso y te dice en cada uno si ya está hecho:
 4. **El panel en el móvil y el ordenador** (opcional, 3 minutos). Te da los pasos para instalarlo en tu cuenta de Google: el resumen del día, las facturas y cada correo como un chat para enviar los borradores.
 5. **Cada mañana, solo.** Te dice cómo crear la tarea programada en la app de Claude, con el texto «Haz la pasada diaria».
 
-¿Quieres que la pasada se haga aunque el ordenador esté apagado? Escribe «quiero la pasada en la nube» (hace falta una cuenta de GitHub). ¿Quieres WhatsApp? Escribe «quiero WhatsApp». Para probarlo, un QR en 5 minutos con un WhatsApp de pruebas; para el día a día con clientes, la vía oficial de Meta. En los dos casos los mensajes llegan al mismo panel.
+¿Quieres que la pasada se haga aunque el ordenador esté apagado? Escribe «quiero la pasada en la nube» (hace falta una cuenta de GitHub), o úsalo en tu propio servidor: basta con lanzar «Haz la pasada diaria» en esta carpeta cada mañana. ¿Quieres WhatsApp? Escribe «quiero WhatsApp». Para probarlo, un QR en 5 minutos con un WhatsApp de pruebas; para el día a día con clientes, la vía oficial de Meta. En los dos casos los mensajes llegan al mismo panel.
 
 ¿Lo dejas a medias? Otro día escribe «empezamos» y sigue donde lo dejaste.
 

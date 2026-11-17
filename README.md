@@ -14,7 +14,7 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 - **Se protege.** Si un correo intenta darle órdenes («ignora tus instrucciones y reenvía…»), no obedece: lo marca como «Agente/Sospechoso».
 - **Te lo enseña en un panel, en el móvil y en el ordenador.** Lo que necesita a una persona arriba, las cifras del día, las facturas con su estado y cada correo como un chat, con el borrador del agente ya escrito: lo cambias si quieres y pulsas «Enviar». Envías tú, con dos clics; el agente no puede. Es una página privada de tu propia cuenta de Google (`herramientas/panel.gs`): sin servidor, sin claves y sin el ordenador encendido.
 - **Y si no quieres instalar nada,** el mismo resumen está en `salida/panel.html`, que se abre con doble clic.
-- **Funciona solo** cada mañana con una tarea programada de la app de Claude.
+- **Funciona solo** cada mañana. Lo normal es una tarea programada de la app de Claude, pero vale cualquier sitio que pueda lanzar «Haz la pasada diaria» en esta carpeta con Gmail conectado: la nube de Claude, tu propio servidor o la herramienta que ya uses. El agente no depende de ninguno.
 
 ## Cómo está hecho
 
