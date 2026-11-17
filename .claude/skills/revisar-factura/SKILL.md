@@ -17,6 +17,7 @@ Las cuentas no las haces tú: las hace `herramientas/revisar_factura.py`. Tu tra
 ```
 
    - Una línea en `lineas` por cada tipo de IVA distinto, con su base.
+   - Si la factura pone una cuota de IVA por cada tipo (por ejemplo, un albarán con 10 % y 21 %), copia cada cuota en su línea como `"cuota"` y no pongas `cuota_iva`: `"lineas": [{"base": 58.00, "tipo_iva": 10, "cuota": 5.80}, {"base": 613.00, "tipo_iva": 21, "cuota": 128.73}]`.
    - Si un dato no aparece, déjalo vacío (`""`) o quítalo. Nunca lo inventes ni lo calcules tú.
    - Si no puedes leer la factura, no adivines: estado «revisar», motivo «No se puede leer la factura».
 3. **Ejecuta la herramienta** con los tipos de la sección «Impuestos» de `negocio/negocio.md`:

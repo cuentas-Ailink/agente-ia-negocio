@@ -49,6 +49,9 @@ casos = [
       "motivo_exencion": "Operación exenta de IVA, art. 20.1.16 Ley 37/1992"}, "correcta"),
     ("dos tipos de IVA", {"numero": "6", "fecha": "2026-11-01", "nif_emisor": "B12345674",
       "lineas": [{"base": 100, "tipo_iva": 21}, {"base": 50, "tipo_iva": 10}], "cuota_iva": 26, "total": 176}, "correcta"),
+    ("cuota por tipo mal", {"numero": "7", "fecha": "2026-11-01", "nif_emisor": "B12345674",
+      "lineas": [{"base": 100, "tipo_iva": 21, "cuota": 21}, {"base": 50, "tipo_iva": 10, "cuota": 6}],
+      "total": 176}, "error"),
 ]
 for nombre, f, esperado in casos:
     r = revisar(f)

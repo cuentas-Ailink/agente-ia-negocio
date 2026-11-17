@@ -11,8 +11,11 @@ La IA lee la factura (PDF o imagen) y copia en un JSON lo que pone, sin corregir
   "fecha": "2026-11-12",
   "emisor": "Recambios Mena SL",
   "nif_emisor": "B46777890",
-  "lineas": [{"base": 2310.00, "tipo_iva": 21}],   # una por cada tipo de IVA
-  "cuota_iva": 485.10,          # la que pone la factura (opcional)
+  "lineas": [{"base": 2310.00, "tipo_iva": 21, "cuota": 485.10}],
+                                # una por cada tipo de IVA; «cuota» = la que pone la factura
+                                # para ese tipo (opcional)
+  "cuota_iva": 485.10,          # la cuota TOTAL que pone la factura (opcional; si trae una
+                                # por tipo, ponlas en cada línea y deja esta fuera)
   "tipo_irpf": 0,               # % de retención (0 si no hay)
   "retencion": 0,               # la que pone la factura (opcional)
   "total": 2815.10,             # el total que pone la factura
@@ -86,6 +89,12 @@ def revisar(f, tipos_iva=None, tipos_irpf=None, comprobar_nif=True):
     if float(tipo_irpf) not in [float(x) for x in tipos_irpf]:
         errores.append(f"Retención del {tipo_irpf} %: no es un tipo habitual.")
 
+    for l in lineas:
+        if l.get("cuota") is not None:
+            c_ok = d(d(l.get("base")) * Decimal(str(l.get("tipo_iva", 0))) / 100)
+            if abs(d(l["cuota"]) - c_ok) > TOLERANCIA:
+                errores.append(f"Cuota de IVA al {l.get('tipo_iva', 0)} %: pone {euros(d(l['cuota']))}, "
+                               f"debería ser {euros(c_ok)}.")
     if f.get("cuota_iva") is not None and abs(d(f["cuota_iva"]) - cuota_ok) > TOLERANCIA:
         errores.append(f"Cuota de IVA: pone {euros(d(f['cuota_iva']))}, debería ser {euros(cuota_ok)}.")
     if f.get("retencion") is not None and abs(d(f["retencion"]) - ret_ok) > TOLERANCIA:

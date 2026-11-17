@@ -154,7 +154,7 @@
   "de_nombre": "Javier Roig",
   "de_email": "javier@estudioroig.demo",
   "asunto": "Mi factura de la reforma de Cuba 18",
-  "cuerpo": "Te paso los datos de la factura que he emitido, que no me deja adjuntar el PDF:\n\nFactura n.º 2026-031 · 14/11/2026\nEmisor: Javier Roig Navarro · NIF 20456781K\nCliente: Comunidad de Propietarios C/ Cuba 18\nHonorarios proyecto de reforma de fachada: 3.200,00 €\nIVA 21 %: 672,00 €\nRetención IRPF 15 %: -480,00 €\nTotal: 3.392,00 €\n\nJavi",
+  "cuerpo": "Te paso los datos de la factura que he emitido, que no me deja adjuntar el PDF:\n\nFactura n.º 2026-031 · 14/11/2026\nEmisor: Javier Roig Navarro · NIF 20456781Y\nCliente: Comunidad de Propietarios C/ Cuba 18\nHonorarios proyecto de reforma de fachada: 3.200,00 €\nIVA 21 %: 672,00 €\nRetención IRPF 15 %: -480,00 €\nTotal: 3.392,00 €\n\nJavi",
   "minutos_antes": 15,
   "tipo_esperado": "Factura",
   "cliente": "Estudio Roig Arquitectura",
