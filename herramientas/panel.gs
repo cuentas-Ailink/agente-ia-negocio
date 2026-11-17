@@ -34,16 +34,37 @@
  *   Tiene una pestaña «Por cliente» con las sumas de cada cliente. Se rellena cada vez que abres el panel, sin repetir facturas.
  *   La primera vez, elige la función «prepararHoja» y pulsa «Ejecutar» (pide permiso para crear la hoja).
  * - El nombre y el logo del negocio se cambian en el propio panel: pulsa el nombre, arriba a la izquierda.
+ *
+ * WhatsApp (opcional, el siguiente nivel): las facturas y preguntas que os manden por WhatsApp entran en Gmail
+ * como un correo más y se contestan desde este panel. Hace falta una app de Meta con WhatsApp (cuenta de Facebook).
+ * Meta no acepta avisar a Apps Script directamente (Google contesta con una redirección), así que en medio va
+ * un puente gratis en Cloudflare: herramientas/whatsapp-puente.js. Los pasos, en el propio panel:
+ * 1. Pulsa el nombre del negocio → WhatsApp → «Conectar»: pega el token permanente y el identificador del número.
+ * 2. Aquí, «Implementar» → «Nueva implementación» → «Aplicación web», Ejecutar como «Yo», acceso «Cualquier usuario»
+ *    (solo para que el puente pueda pasar los mensajes; la página del panel sigue siendo solo tuya).
+ *    Pega su dirección /exec en el panel: comprueba que funciona y te da el valor de PANEL para el puente.
+ * 3. En Cloudflare, crea el puente con whatsapp-puente.js (instrucciones dentro) y en Meta pon su dirección.
  */
 
 const MAX_CONVERSACIONES = 80;
 const DIAS_EN_PANEL = 14;
 const DIAS_GUARDADOS = 30;
 
-function doGet() {
+function doGet(e) {
+  const p = (e && e.parameter) || {};
+  // El puente de WhatsApp comprobando que llega (ver «WhatsApp», más abajo).
+  if (p.clave != null) return ContentService.createTextOutput(respuestaPuente_(String(p.clave)));
+  // La implementación de WhatsApp está abierta a «Cualquier usuario»: el panel solo se enseña a la cuenta del negocio.
+  if (!esLaCuenta_()) return HtmlService.createHtmlOutput('<p style="font-family:sans-serif">Esta página es privada.</p>');
   return HtmlService.createHtmlOutput(PAGINA)
     .setTitle('Panel del correo')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, viewport-fit=cover');
+}
+
+/** Quien abre la página es la propia cuenta del negocio (en la implementación «Solo yo» siempre lo es). */
+function esLaCuenta_() {
+  const quien = String(Session.getActiveUser().getEmail() || '').toLowerCase();
+  return !!quien && quien === Session.getEffectiveUser().getEmail().toLowerCase();
 }
 
 // ---------------------------------------------------------------- el resumen de cada pasada
@@ -376,7 +397,8 @@ function datosBandeja() {
       ultimoMio: !!(ultimo && esMio_(ultimo, yo)),
       noEntregado: !!(fin && esAviso_(fin)),
       tipo: marcas.tipo, revisar: marcas.revisar, sospechoso: marcas.sospechoso,
-      borrador: !!conBorrador[h.getId()]
+      borrador: !!conBorrador[h.getId()],
+      whatsapp: !!telefonoDeHilo_(todosReales)
     };
   }).sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
   return { conversaciones: conversaciones };
@@ -411,11 +433,20 @@ function datosHilo(id) {
   });
   const ref = ultimoDelCliente_(todos, yo);
   const marcas = resumirEtiquetas_(hilo.getLabels().map(l => l.getName()));
+  const tel = telefonoDeHilo_(todos);
+  const delCliente = todos.filter(m => !m.isDraft() && !esMio_(m, yo) && !esAviso_(m));
+  const whatsapp = tel ? {
+    telefono: '+' + tel,
+    conectado: !!ajustesWhatsApp_().token,
+    // WhatsApp deja contestar hasta 24 h después del último mensaje del cliente.
+    hasta: delCliente.length ? new Date(delCliente[delCliente.length - 1].getDate().getTime() + DIA_MS_).toISOString() : null
+  } : null;
   return {
     id: id,
+    whatsapp: whatsapp,
     asunto: hilo.getFirstMessageSubject() || '(sin asunto)',
     nombre: ref ? nombre_(ref.getFrom()) : '',
-    para: borrador ? borrador.para : (ref ? direcciones_(ref.getReplyTo() || ref.getFrom()) : ''),
+    para: tel ? 'WhatsApp +' + tel : (borrador ? borrador.para : (ref ? direcciones_(ref.getReplyTo() || ref.getFrom()) : '')),
     gmail: 'https://mail.google.com/mail/?authuser=' + encodeURIComponent(yo) + '#all/' + id,
     tipo: marcas.tipo, revisar: marcas.revisar, sospechoso: marcas.sospechoso,
     mensajes: mensajes,
@@ -430,9 +461,308 @@ function guardarBorrador(id, texto) {
 
 /** Guarda y envía. Solo se llama cuando una persona ha pulsado «Enviar» y lo ha confirmado. */
 function enviar(id, texto) {
+  const hilo = GmailApp.getThreadById(id);
+  const tel = hilo ? telefonoDeHilo_(hilo.getMessages()) : '';
+  if (tel) return enviarPorWhatsApp_(id, tel, texto);
   const borradorId = escribirBorrador_(id, texto);
   Gmail.Users.Drafts.send({ id: borradorId }, 'me');
   return { ok: true };
+}
+
+// ---------------------------------------------------------------- WhatsApp (siguiente nivel)
+//
+// Los clientes mandan por WhatsApp sus facturas (foto o PDF) o una pregunta. Meta avisa al puente de Cloudflare
+// (whatsapp-puente.js), que comprueba la firma de Meta y pasa el aviso a este mismo script (una segunda
+// implementación, con acceso «Cualquier usuario»). Aquí:
+// 1. Se comprueba la clave de la dirección y que el aviso es de vuestro número.
+// 2. Deja el mensaje en vuestro Gmail como un correo más, con la foto o el PDF adjunto, en un hilo por cliente
+//    («WhatsApp · Nombre»). Nada se envía: se inserta en la bandeja. Así la pasada del agente lo revisa igual.
+// 3. Contesta por WhatsApp un acuse fijo («Recibido, gracias…»), como mucho uno cada 6 horas por cliente.
+//    Es un texto que escribe el negocio, no el agente, y se puede dejar vacío para no mandarlo.
+// La respuesta de verdad la envía una persona desde este panel, con «Enviar», y sale por WhatsApp.
+// WhatsApp solo deja contestar dentro de las 24 h desde el último mensaje del cliente: el panel lo enseña.
+
+const GRAPH_ = 'https://graph.facebook.com/v26.0';
+const ACUSE_POR_DEFECTO = 'Recibido, gracias. Lo revisa el equipo y te contestamos por aquí.';
+const RE_WA_ = /\+wa(\d{6,15})@/i;
+const HORAS_ENTRE_ACUSES = 6;
+const DIA_MS_ = 24 * 3600 * 1000;
+
+function ajustesWhatsApp_() {
+  const p = PropertiesService.getScriptProperties().getProperties();
+  return {
+    token: p.wa_token || '', numero: p.wa_numero || '', clave: p.wa_clave || '',
+    acuse: p.wa_acuse != null ? p.wa_acuse : ACUSE_POR_DEFECTO, mostrar: p.wa_mostrar || '', dir: p.wa_dir || ''
+  };
+}
+
+/** Lo que enseña «Tu negocio → WhatsApp». El token nunca sale de aquí. */
+function datosWhatsApp() {
+  const a = ajustesWhatsApp_();
+  return {
+    conectado: !!(a.token && a.numero), numero: a.mostrar, id: a.numero, clave: a.clave, acuse: a.acuse,
+    dir: a.dir, panel: a.dir && a.clave ? a.dir + '?clave=' + a.clave : ''
+  };
+}
+
+/** Comprueba el token y el número con Meta y los guarda. Sin token nuevo, deja el que había. */
+function guardarWhatsApp(token, numero, acuse) {
+  const props = PropertiesService.getScriptProperties();
+  const a = ajustesWhatsApp_();
+  token = String(token || '').trim() || a.token;
+  numero = String(numero || '').replace(/\D/g, '') || a.numero;
+  if (!token) throw new Error('Pega el token permanente de Meta.');
+  if (!numero) throw new Error('Pega el identificador del número de teléfono (solo números).');
+  const r = UrlFetchApp.fetch(GRAPH_ + '/' + numero + '?fields=display_phone_number,verified_name',
+    { headers: { Authorization: 'Bearer ' + token }, muteHttpExceptions: true });
+  const d = JSON.parse(r.getContentText() || '{}');
+  if (r.getResponseCode() !== 200) throw new Error(explicarMeta_(d.error));
+  props.setProperties({
+    wa_token: token, wa_numero: numero, wa_acuse: String(acuse == null ? a.acuse : acuse).trim().slice(0, 500),
+    wa_clave: a.clave || Utilities.getUuid().replace(/-/g, '').slice(0, 24),
+    wa_mostrar: [d.display_phone_number, d.verified_name].filter(Boolean).join(' · ')
+  });
+  return datosWhatsApp();
+}
+
+function quitarWhatsApp() {
+  ['wa_token', 'wa_numero', 'wa_mostrar', 'wa_dir'].forEach(k => PropertiesService.getScriptProperties().deleteProperty(k));
+  return datosWhatsApp();
+}
+
+/** Lo que contesta este script cuando el puente (o el panel) comprueba que llega. */
+function respuestaPuente_(clave) {
+  const a = ajustesWhatsApp_();
+  if (!a.clave || clave !== a.clave) return 'no';
+  return a.token && a.numero ? 'ok' : 'sin-conectar';
+}
+
+/**
+ * Guarda la dirección de la implementación «Cualquier usuario» después de comprobar que contesta sin iniciar
+ * sesión (si es la del panel, «Solo yo», Google pide entrar y no vale).
+ */
+function guardarPuente(dir) {
+  const a = ajustesWhatsApp_();
+  if (!a.clave) throw new Error('Primero conecta WhatsApp, arriba.');
+  dir = String(dir || '').trim().replace(/[?#].*$/, '');
+  if (!/^https:\/\/script\.google\.com\/(a\/macros\/[^/]+|macros)\/s\/[\w-]+\/exec$/.test(dir)) {
+    throw new Error('Pega la dirección de la implementación: empieza por https://script.google.com/macros/s/ y acaba en /exec.');
+  }
+  const r = UrlFetchApp.fetch(dir + '?clave=' + a.clave + '&ping=1', { muteHttpExceptions: true, followRedirects: true });
+  const t = r.getContentText().trim();
+  if (t !== 'ok' && t !== 'sin-conectar') {
+    throw new Error('Esa dirección pide iniciar sesión o es de otro proyecto. En la implementación, «Quién tiene acceso» tiene que ser «Cualquier usuario».');
+  }
+  PropertiesService.getScriptProperties().setProperty('wa_dir', dir);
+  return datosWhatsApp();
+}
+
+/** Los avisos de Meta: mensajes nuevos (y estados de entrega, que no se usan). */
+function doPost(e) {
+  const a = ajustesWhatsApp_();
+  const p = (e && e.parameter) || {};
+  if (!a.clave || !a.token || p.clave !== a.clave) return ContentService.createTextOutput('no');
+  let datos;
+  try { datos = JSON.parse(e.postData.contents); } catch (x) { return ContentService.createTextOutput('no'); }
+  const cerrojo = LockService.getScriptLock();
+  if (!cerrojo.tryLock(25000)) return ContentService.createTextOutput('ocupado');
+  try {
+    (datos.entry || []).forEach(en => (en.changes || []).forEach(c => {
+      const v = c.value || {};
+      // Solo lo que llega a vuestro número: un aviso con otro número no es vuestro.
+      if (!v.metadata || String(v.metadata.phone_number_id) !== a.numero) return;
+      (v.messages || []).forEach(m => {
+        try { recibirWhatsApp_(m, v.contacts || [], a); } catch (err) { console.error('WhatsApp: ' + err.message); }
+      });
+    }));
+  } finally {
+    cerrojo.releaseLock();
+  }
+  return ContentService.createTextOutput('OK');
+}
+
+function recibirWhatsApp_(m, contactos, a) {
+  if (!m || !m.id || !m.from || m.type === 'reaction' || m.type === 'unsupported') return;
+  if (yaVisto_(m.id)) return;
+  const tel = String(m.from).replace(/\D/g, '');
+  const contacto = contactos.filter(c => c.wa_id === m.from)[0];
+  const nombre = (contacto && contacto.profile && contacto.profile.name) || '+' + tel;
+  const fecha = new Date(Number(m.timestamp) * 1000 || Date.now());
+  let texto = '', adjunto = null;
+  if (m.type === 'text') texto = (m.text && m.text.body) || '';
+  else if (m.type === 'image' || m.type === 'document') {
+    const info = m[m.type] || {};
+    texto = info.caption || '';
+    adjunto = bajarDeMeta_(info.id, a.token);
+    const ext = (adjunto.getContentType() || '').split('/')[1] || 'bin';
+    const nombreArchivo = (info.filename || (m.type === 'image' ? 'foto' : 'documento') + '-' +
+      Utilities.formatDate(fecha, Session.getScriptTimeZone(), 'yyyyMMdd-HHmm') + '.' + ext.replace('jpeg', 'jpg')).replace(/[\\/\r\n"]/g, '');
+    adjunto.setName(nombreArchivo);
+    if (!texto) texto = m.type === 'image' ? '(Foto por WhatsApp)' : '(Documento por WhatsApp: ' + nombreArchivo + ')';
+  } else if (m.type === 'audio') {
+    texto = '(Nota de voz por WhatsApp: escúchala en el móvil o pide que lo escriba)';
+  } else {
+    texto = '(Mensaje de WhatsApp que no es texto: ' + m.type + ')';
+  }
+  insertarEnGmail_(tel, nombre, texto, adjunto, fecha, m.id);
+  marcarVisto_(m.id);
+  acusar_(tel, a);
+}
+
+/** Dos pasos: Meta da una dirección temporal para el id y esa dirección también pide el token. */
+function bajarDeMeta_(id, token) {
+  const cab = { headers: { Authorization: 'Bearer ' + token }, muteHttpExceptions: true };
+  const r = UrlFetchApp.fetch(GRAPH_ + '/' + id, cab);
+  const info = JSON.parse(r.getContentText() || '{}');
+  if (r.getResponseCode() !== 200 || !info.url) throw new Error('Meta no da el archivo: ' + explicarMeta_(info.error));
+  const archivo = UrlFetchApp.fetch(info.url, cab);
+  if (archivo.getResponseCode() !== 200) throw new Error('No se ha podido descargar el archivo (' + archivo.getResponseCode() + ')');
+  return archivo.getBlob().setContentType(info.mime_type || archivo.getBlob().getContentType());
+}
+
+/** La dirección con la que cada cliente de WhatsApp aparece en Gmail: vuestra cuenta + «+wa» y su número. */
+function direccionWhatsApp_(tel) {
+  const yo = Session.getEffectiveUser().getEmail();
+  const i = yo.indexOf('@');
+  return yo.slice(0, i) + '+wa' + tel + yo.slice(i);
+}
+
+function cabeceraUtf8_(t) { return '=?UTF-8?B?' + Utilities.base64Encode(t, Utilities.Charset.UTF_8) + '?='; }
+
+/**
+ * Mete un mensaje en el hilo de ese cliente (lo crea la primera vez). Con `o.enviado` lo pone como vuestro
+ * y con `o.hilo` va a esa conversación de Gmail.
+ */
+function insertarEnGmail_(tel, nombre, texto, adjunto, fecha, idMeta, o) {
+  o = o || {};
+  const enviado = !!o.enviado;
+  const props = PropertiesService.getScriptProperties();
+  const yo = Session.getEffectiveUser().getEmail();
+  const suya = direccionWhatsApp_(tel);
+  const clave = 'wa_h_' + tel;
+  let hilo = JSON.parse(props.getProperty(clave) || 'null');
+  if (o.hilo && (!hilo || hilo.id !== o.hilo)) {
+    const h = GmailApp.getThreadById(o.hilo);
+    const ms = h.getMessages().filter(m => !m.isDraft());
+    const ultimo = ms[ms.length - 1];
+    hilo = { id: o.hilo, ultimo: (ultimo && ultimo.getHeader('Message-ID')) || '', nombre: (h.getFirstMessageSubject() || '').replace(/^WhatsApp · /, '') || nombre };
+  }
+  if (hilo) {
+    let vale = false;
+    try { const h = GmailApp.getThreadById(hilo.id); vale = !!h && !h.isInTrash(); } catch (x) { vale = false; }
+    if (!vale) hilo = null;
+  }
+  const asunto = 'WhatsApp · ' + (hilo ? hilo.nombre : nombre);
+  const msgId = '<wa.' + Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(idMeta))
+    .map(b => ('0' + (b & 255).toString(16)).slice(-2)).join('').slice(0, 32) + '@whatsapp.invalid>';
+  const corte = 'corte_' + Utilities.getUuid().replace(/-/g, '');
+  const b64 = bytes => Utilities.base64Encode(bytes).replace(/(.{76})/g, '$1\r\n');
+  const partes = [
+    'From: ' + (enviado ? yo : cabeceraUtf8_(nombre + ' (WhatsApp)') + ' <' + suya + '>'),
+    'To: ' + (enviado ? suya : yo),
+    'Subject: ' + cabeceraUtf8_(hilo ? 'Re: ' + asunto : asunto),
+    'Date: ' + Utilities.formatDate(fecha, 'GMT', "EEE, dd MMM yyyy HH:mm:ss Z"),
+    'Message-ID: ' + msgId,
+    hilo && hilo.ultimo ? 'In-Reply-To: ' + hilo.ultimo : null,
+    hilo && hilo.ultimo ? 'References: ' + hilo.ultimo : null,
+    'X-Canal: WhatsApp +' + tel,
+    'MIME-Version: 1.0',
+    'Content-Type: multipart/mixed; boundary="' + corte + '"',
+    '',
+    '--' + corte,
+    'Content-Type: text/plain; charset=UTF-8',
+    'Content-Transfer-Encoding: base64',
+    '',
+    b64(Utilities.newBlob(texto || ' ').getBytes())
+  ];
+  if (adjunto) {
+    partes.push('--' + corte,
+      'Content-Type: ' + adjunto.getContentType() + '; name="' + adjunto.getName() + '"',
+      'Content-Disposition: attachment; filename="' + adjunto.getName() + '"',
+      'Content-Transfer-Encoding: base64', '', b64(adjunto.getBytes()));
+  }
+  partes.push('--' + corte + '--', '');
+  const mime = partes.filter(l => l !== null).join('\r\n');
+  const recurso = { labelIds: enviado ? ['SENT'] : ['INBOX', 'UNREAD'] };
+  if (hilo) recurso.threadId = hilo.id;
+  const r = Gmail.Users.Messages.insert(recurso, 'me', Utilities.newBlob(mime, 'message/rfc822'));
+  props.setProperty(clave, JSON.stringify({ id: r.threadId, ultimo: msgId, nombre: hilo ? hilo.nombre : nombre }));
+  return r.threadId;
+}
+
+/** El acuse fijo, como mucho uno cada pocas horas por cliente. Si falla, no pasa nada: el mensaje ya está en Gmail. */
+function acusar_(tel, a) {
+  if (!a.acuse) return;
+  const props = PropertiesService.getScriptProperties();
+  const ultimo = Number(props.getProperty('wa_a_' + tel) || 0);
+  if (Date.now() - ultimo < HORAS_ENTRE_ACUSES * 3600 * 1000) return;
+  try {
+    enviarWhatsApp_(tel, a.acuse, a);
+    props.setProperty('wa_a_' + tel, String(Date.now()));
+  } catch (err) {
+    console.error('WhatsApp, acuse: ' + err.message);
+  }
+}
+
+/** Manda un texto por WhatsApp desde el número del negocio. Lanza el error de Meta explicado. */
+function enviarWhatsApp_(tel, texto, a) {
+  const r = UrlFetchApp.fetch(GRAPH_ + '/' + a.numero + '/messages', {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { Authorization: 'Bearer ' + a.token },
+    payload: JSON.stringify({ messaging_product: 'whatsapp', to: tel, type: 'text', text: { preview_url: false, body: texto } })
+  });
+  const d = JSON.parse(r.getContentText() || '{}');
+  if (r.getResponseCode() !== 200) throw new Error(explicarMeta_(d.error));
+  return d.messages && d.messages[0] ? d.messages[0].id : '';
+}
+
+function explicarMeta_(error) {
+  const c = error && Number(error.code), msg = (error && error.message) || 'Meta no ha contestado';
+  if (c === 190) return 'El token de WhatsApp no vale o ha caducado: pega uno permanente en «Tu negocio → WhatsApp».';
+  if (c === 131047) return 'Han pasado más de 24 h desde su último mensaje: WhatsApp solo deja escribirle con un mensaje aprobado.';
+  if (c === 131030) return 'Ese número no está en la lista de números de prueba de tu app de Meta.';
+  if (c === 131026) return 'WhatsApp no ha podido entregarlo: puede que ese número no tenga WhatsApp.';
+  if (c === 100) return 'Meta no reconoce el identificador del número. Cópialo de «Configuración de la API».';
+  return msg;
+}
+
+function yaVisto_(id) { return !!PropertiesService.getScriptProperties().getProperty('wa_v_' + resumenId_(id)); }
+
+/** Recuerda los mensajes ya metidos en Gmail (Meta puede avisar dos veces) y olvida los de hace más de 8 días. */
+function marcarVisto_(id) {
+  const props = PropertiesService.getScriptProperties();
+  props.setProperty('wa_v_' + resumenId_(id), String(Date.now()));
+  if (Math.random() < 0.05) {
+    const todo = props.getProperties(), limite = Date.now() - 8 * DIA_MS_;
+    Object.keys(todo).forEach(k => { if (k.indexOf('wa_v_') === 0 && Number(todo[k]) < limite) props.deleteProperty(k); });
+  }
+}
+
+function resumenId_(id) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, String(id)).map(b => ('0' + (b & 255).toString(16)).slice(-2)).join('');
+}
+
+/** El número de WhatsApp de una conversación, si viene de WhatsApp. */
+function telefonoDeHilo_(mensajes) {
+  for (let i = 0; i < mensajes.length; i++) {
+    const t = (mensajes[i].getFrom() + ' ' + mensajes[i].getTo()).match(RE_WA_);
+    if (t) return t[1];
+  }
+  return '';
+}
+
+/** Lo envía una persona desde el panel: sale por WhatsApp, queda en la conversación y el borrador se quita. */
+function enviarPorWhatsApp_(id, tel, texto) {
+  texto = String(texto || '').replace(/\r\n/g, '\n').trim();
+  if (!texto) throw new Error('El mensaje está vacío.');
+  if (texto.length > 4096) throw new Error('WhatsApp no deja enviar más de 4.096 caracteres.');
+  const a = ajustesWhatsApp_();
+  if (!a.token || !a.numero) throw new Error('WhatsApp no está conectado: pulsa el nombre del negocio, arriba a la izquierda → WhatsApp.');
+  const idMeta = enviarWhatsApp_(tel, texto, a);
+  insertarEnGmail_(tel, '', texto, null, new Date(), idMeta || Utilities.getUuid(), { enviado: true, hilo: id });
+  const b = hilosConBorrador_()[id];
+  if (b) Gmail.Users.Drafts.remove('me', b.id);
+  return { ok: true, whatsapp: true };
 }
 
 // ---------------------------------------------------------------- ayudas
@@ -527,7 +857,7 @@ function direcciones_(cabecera) {
 function nombre_(de) {
   const s = String(de || '').trim();
   const m = s.match(/^"?([^"<]+?)"?\s*</);
-  return m ? m[1].trim() : s.replace(/[<>]/g, '');
+  return (m ? m[1].trim() : s.replace(/[<>]/g, '')).replace(/ \(WhatsApp\)$/, '');
 }
 
 /** Gmail escribe «Agente/Factura» como label:agente-factura. */
@@ -637,6 +967,29 @@ svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .fila-b{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .fila-b .estado{flex:1;font-size:12.5px;color:var(--sec);font-weight:400}
 .dialogo .pie-d{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.dialogo{max-height:calc(100dvh - 32px);overflow:auto}
+.wa{border-top:1px solid var(--linea);margin:4px 0 14px;padding-top:14px}
+.wa .fila{display:flex;align-items:center;gap:10px;font-size:13px}
+.wa .fila .t{flex:1;min-width:0}
+.wa .fila b{font-weight:600}
+.wa .fila .e{color:var(--sec)}
+.wa .campos{margin-top:12px}
+.wa textarea,.campo input[type=password]{border:1px solid var(--linea-f);border-radius:10px;padding:9px 12px;font:inherit;font-size:14px;font-weight:400;resize:vertical}
+.wa textarea:focus,.campo input[type=password]:focus{outline:0;border-color:var(--tinta)}
+.wa .ayuda{font-size:12px;color:var(--sec);font-weight:400}
+.wa .meta{background:var(--app);border-radius:12px;padding:10px 12px;margin-top:12px;font-size:12.5px;color:var(--sec)}
+.wa .meta code{display:block;margin:3px 0 8px;color:var(--tinta);font:500 12.5px ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+.wa .meta code:last-child{margin-bottom:0}
+.wa .meta code{user-select:all;-webkit-user-select:all}
+.wa .meta b{color:var(--tinta);font-weight:600}
+.wa .meta ol{margin:8px 0 0;padding-left:18px}
+.wa .meta li{margin-bottom:10px}
+.wa .meta li:last-child{margin-bottom:0}
+.wa .meta .fila-b{margin-top:6px}
+.wa .meta input{flex:1;min-width:0;border:1px solid var(--linea-f);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;color:var(--tinta);background:var(--tarjeta)}
+.wa .meta input:focus{outline:0;border-color:var(--tinta)}
+.ventana{font-size:12px;color:var(--sec)}
+.ventana.cerrada{color:var(--err-t)}
 .logo{width:34px;height:34px;border-radius:10px;background:var(--tinta);color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px;letter-spacing:.02em;flex:none}
 .marca .n{font-weight:600;font-size:15px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .marca .s{font-size:12px;color:var(--sec)}
@@ -991,6 +1344,26 @@ textarea:focus{outline:0}
       <div class="vista-logo" id="d-vista">Sin logo</div>
       <div class="fila-b"><label class="boton" for="d-archivo">Subir logo</label><input type="file" id="d-archivo" accept="image/png,image/jpeg,image/webp" hidden>
         <button type="button" class="boton fantasma" id="d-quitar">Quitar</button><span class="estado" id="d-estado">PNG o JPG. El blanco de los bordes se recorta solo.</span></div>
+    </div>
+    <div class="wa" id="wa">
+      <div class="fila"><span class="t"><b>WhatsApp</b> <span class="e" id="wa-estado">No conectado</span></span>
+        <button type="button" class="boton" id="wa-abrir">Conectar</button></div>
+      <div class="campos" id="wa-campos" hidden>
+        <label class="campo">Token permanente de Meta<input type="password" id="wa-token" autocomplete="off" placeholder="EAAG…"><span class="ayuda">El del usuario del sistema, que no caduca. No se vuelve a enseñar.</span></label>
+        <label class="campo">Identificador del número de teléfono<input type="text" id="wa-numero" inputmode="numeric" placeholder="Lo ves en Meta → WhatsApp → Configuración de la API"></label>
+        <label class="campo">Respuesta automática al recibir algo<textarea id="wa-acuse" rows="2" maxlength="500"></textarea><span class="ayuda">Un texto fijo, como mucho uno cada 6 horas por cliente. Déjalo vacío para no mandar nada.</span></label>
+        <div class="fila-b"><button type="button" class="boton negro" id="wa-guardar">Conectar WhatsApp</button><button type="button" class="boton fantasma" id="wa-quitar" hidden>Desconectar</button><span class="estado" id="wa-aviso"></span></div>
+      </div>
+      <div class="meta" id="wa-meta" hidden>
+        <b>Para que lleguen los mensajes</b>
+        <ol>
+          <li>En Apps Script: Implementar → Nueva implementación → Aplicación web, acceso «Cualquier usuario». Pega su dirección:
+            <div class="fila-b"><input type="text" id="wa-dir" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec"><button type="button" class="boton" id="wa-dir-g">Comprobar</button></div>
+            <span class="estado" id="wa-dir-aviso"></span></li>
+          <li>En Cloudflare, el puente (whatsapp-puente.js). Variable PANEL:<code id="wa-panel"></code></li>
+          <li>En Meta → WhatsApp → Configuración → Webhook: la dirección del puente y este token de verificación:<code id="wa-clave"></code></li>
+        </ol>
+      </div>
     </div>
     <div class="pie-d"><button type="button" class="boton fantasma" id="d-cancelar">Cancelar</button><button type="submit" class="boton negro" id="d-guardar">Guardar</button></div>
   </form>
@@ -1363,6 +1736,7 @@ function pintarLista(){
   else if (!lista.length) caja.append(el('div',{class:'nota-lista'}, q ? 'Nada coincide con «' + busqueda.trim() + '».' : 'No queda nada por contestar. Los demás están en «Todos».'));
   lista.forEach(function(c){
     var mm = el('div',{class:'mm'}, el('span',{class:'chip'}, c.tipo || 'Correo'));
+    if (c.whatsapp) mm.prepend(el('span',{class:'chip'}, 'WhatsApp'));
     if (c.sospechoso) mm.append(el('span',{class:'chip err'}, 'Sospechoso'));
     else if (c.revisar) mm.append(el('span',{class:'chip aten'}, 'Revisar'));
     if (c.noEntregado) mm.append(el('span',{class:'chip err'}, 'No entregado'));
@@ -1411,6 +1785,7 @@ function pintarHilo(h){
     avatar(h.nombre, null),
     el('div',{class:'tit'},
       el('div',{class:'nombre'}, h.nombre || 'Sin remitente',
+        h.whatsapp ? el('span',{class:'chip'}, 'WhatsApp') : null,
         h.tipo ? el('span',{class:'chip'}, h.tipo) : null,
         h.sospechoso ? el('span',{class:'chip err'}, 'Sospechoso') : (h.revisar ? el('span',{class:'chip aten'}, 'Revisar') : null)),
       el('div',{class:'detalle'}, h.asunto)),
@@ -1440,10 +1815,19 @@ function pintarHilo(h){
   texto.value = sinGuardar[h.id] != null ? sinGuardar[h.id] : original;
   var estado = el('span',{class:'estado', id:'estado'});
   var guardar = el('button',{class:'boton fantasma', id:'guardar', disabled:true, onclick:function(){ guardarTexto(h); }}, 'Guardar borrador');
-  var enviarB = el('button',{class:'boton negro', id:'enviar', onclick:function(){ pedirConfirmacion(h); }}, ico('enviar'), 'Enviar');
+  var enviarB = el('button',{class:'boton negro', id:'enviar', onclick:function(){ pedirConfirmacion(h); }}, ico('enviar'), h.whatsapp ? 'Enviar por WhatsApp' : 'Enviar');
+  var nota = null;
+  if (h.whatsapp){
+    var cerrada = !h.whatsapp.hasta || new Date(h.whatsapp.hasta) <= new Date();
+    nota = el('span',{class:'ventana' + (cerrada || !h.whatsapp.conectado ? ' cerrada' : '')},
+      !h.whatsapp.conectado ? 'WhatsApp no está conectado: pulsa el nombre del negocio, arriba.' :
+      cerrada ? 'Han pasado 24 h desde su último mensaje: WhatsApp no deja contestarle sin un mensaje aprobado.' :
+      'Puedes contestar hasta el ' + diaLargo(h.whatsapp.hasta) + ' a las ' + hora(h.whatsapp.hasta) + '.');
+    if (cerrada || !h.whatsapp.conectado){ enviarB.disabled = true; enviarB.dataset.bloqueado = '1'; }
+  }
   var etiq = el('div',{class:'etiq'},
     h.borrador ? el('span',{}, el('span',{class:'chip ok'}, 'Borrador del agente'), el('span',{class:'pista'}, ' revísalo, cámbialo si quieres y envíalo')) : el('span',{}, el('span',{class:'chip'}, 'Tu respuesta')),
-    el('span',{class:'para'}, h.para ? 'Para ' + h.para : ''));
+    el('span',{class:'para'}, h.para ? 'Para ' + h.para : ''), nota);
   chat.append(el('div',{class:'escribir'}, el('div',{class:'caja'}, etiq, texto, el('div',{class:'botones', id:'botones'}, estado, guardar, enviarB))));
 
   function ajustar(){ texto.style.height = 'auto'; texto.style.height = Math.min(texto.scrollHeight + 2, window.innerHeight * .4) + 'px'; }
@@ -1464,7 +1848,7 @@ function revision(r){
   return caja;
 }
 
-function ocupado(si){ ['guardar','enviar','texto'].forEach(function(id){ var e = $(id); if (e) e.disabled = si; }); }
+function ocupado(si){ ['guardar','enviar','texto'].forEach(function(id){ var e = $(id); if (e && !(e.dataset && e.dataset.bloqueado)) e.disabled = si; }); }
 function avisar(t, error){ var e = $('estado'); if (e){ e.textContent = t; e.className = 'estado' + (error ? ' error' : ''); } }
 function guardarTexto(h){
   var t = $('texto').value;
@@ -1480,7 +1864,7 @@ function pedirConfirmacion(h){
   if (!t.trim()){ avisar('Escribe algo antes de enviar.', true); return; }
   var caja = $('botones'); var antes = Array.prototype.slice.call(caja.childNodes);
   caja.innerHTML = '';
-  caja.append(el('span',{class:'estado confirmar'}, '¿Enviar a ' + (h.nombre || h.para) + '?'),
+  caja.append(el('span',{class:'estado confirmar'}, '¿Enviar ' + (h.whatsapp ? 'por WhatsApp ' : '') + 'a ' + (h.nombre || h.para) + '?'),
     el('button',{class:'boton fantasma', onclick:function(){ caja.innerHTML = ''; antes.forEach(function(n){ caja.append(n); }); }}, 'Cancelar'),
     el('button',{class:'boton negro', id:'si', onclick:function(){ enviarTexto(h, t, caja); }}, ico('enviar'), 'Sí, enviar'));
   $('si').focus();
@@ -1543,7 +1927,37 @@ function abrirPersonalizar(){
   $('d-nombre').value = negocio();
   $('d-estado').textContent = 'PNG o JPG. El blanco de los bordes se recorta solo.'; $('d-estado').className = 'estado';
   vistaLogo(); $('capa').hidden = false; $('d-nombre').focus();
+  $('wa-campos').hidden = true; $('wa-aviso').textContent = ''; $('wa-token').value = '';
+  llamar('datosWhatsApp').then(pintarWhatsApp).catch(function(){ $('wa').hidden = true; });
 }
+var whatsapp = null;
+function pintarWhatsApp(w){
+  whatsapp = w; $('wa').hidden = false;
+  $('wa-estado').textContent = w.conectado ? '· ' + (w.numero || 'Conectado') : 'No conectado';
+  $('wa-abrir').textContent = w.conectado ? 'Cambiar' : 'Conectar';
+  $('wa-quitar').hidden = !w.conectado;
+  $('wa-acuse').value = w.acuse || ''; $('wa-numero').value = w.id || '';
+  $('wa-token').placeholder = w.conectado ? 'Guardado. Pega otro solo para cambiarlo' : 'EAAG…';
+  $('wa-meta').hidden = !w.clave;
+  $('wa-dir').value = w.dir || ''; $('wa-dir-aviso').textContent = w.dir ? 'Comprobada.' : ''; $('wa-dir-aviso').className = 'estado';
+  $('wa-panel').textContent = w.panel || 'Aparece cuando guardes la dirección del paso 1.';
+  $('wa-clave').textContent = w.clave || '';
+}
+$('wa-dir-g').addEventListener('click', function(){
+  var b = $('wa-dir-g'); b.disabled = true; $('wa-dir-aviso').textContent = 'Comprobando…'; $('wa-dir-aviso').className = 'estado';
+  llamar('guardarPuente', $('wa-dir').value).then(function(w){ b.disabled = false; pintarWhatsApp(w); })
+    .catch(function(e){ b.disabled = false; $('wa-dir-aviso').textContent = e.message; $('wa-dir-aviso').className = 'estado error'; });
+});
+$('wa-abrir').addEventListener('click', function(){ $('wa-campos').hidden = !$('wa-campos').hidden; if (!$('wa-campos').hidden) $('wa-token').focus(); });
+$('wa-guardar').addEventListener('click', function(){
+  var b = $('wa-guardar'); b.disabled = true; $('wa-aviso').textContent = 'Comprobando con Meta…'; $('wa-aviso').className = 'estado';
+  llamar('guardarWhatsApp', $('wa-token').value, $('wa-numero').value, $('wa-acuse').value).then(function(w){
+    b.disabled = false; $('wa-token').value = ''; pintarWhatsApp(w); $('wa-campos').hidden = true;
+  }).catch(function(e){ b.disabled = false; $('wa-aviso').textContent = e.message; $('wa-aviso').className = 'estado error'; });
+});
+$('wa-quitar').addEventListener('click', function(){
+  llamar('quitarWhatsApp').then(function(w){ pintarWhatsApp(w); $('wa-campos').hidden = true; });
+});
 function cerrarPersonalizar(){ $('capa').hidden = true; $('d-archivo').value = ''; }
 function vistaLogo(){ var v = $('d-vista'); v.innerHTML = ''; v.append(logoNuevo ? el('img',{src:logoNuevo, alt:'Logo'}) : 'Sin logo'); $('d-quitar').hidden = !logoNuevo; }
 // Recorta el fondo blanco o transparente de los bordes y lo deja a un tamaño de logo.
