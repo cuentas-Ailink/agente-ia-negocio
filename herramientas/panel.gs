@@ -29,6 +29,7 @@
  *   «Agente · resumen AAAA-MM-DD» con el resumen adjunto. No se envía nunca. Este panel guarda los
  *   últimos 30 días y quita los repetidos (si hay dos pasadas el mismo día, vale la última).
  * - Lo que marcas como «Hecho» se guarda en tu cuenta, así que se ve igual en el móvil y en el ordenador.
+ * - El nombre y el logo del negocio se cambian en el propio panel: pulsa el nombre, arriba a la izquierda.
  */
 
 const MAX_CONVERSACIONES = 80;
@@ -71,7 +72,32 @@ function datosResumenes() {
   fechas.slice(0, DIAS_EN_PANEL).forEach(k => {
     try { dias[k] = compactar_(JSON.parse(porDia[k].adj.getDataAsString('UTF-8')), k); } catch (e) {}
   });
-  return { dias: dias, hechos: hechos_() };
+  return { dias: dias, hechos: hechos_(), marca: marca_() };
+}
+
+/** Guarda el nombre y el logo del negocio que enseña el panel. Se guardan en la cuenta, en trozos. */
+function guardarMarca(nombre, logo) {
+  nombre = String(nombre || '').trim().slice(0, 60);
+  logo = String(logo || '');
+  if (logo && !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(logo)) throw new Error('El logo tiene que ser una imagen PNG, JPG o WebP.');
+  if (logo.length > 120000) throw new Error('El logo es demasiado grande. Prueba con una imagen más sencilla.');
+  const p = PropertiesService.getUserProperties();
+  const antes = Number(p.getProperty('marca_trozos') || 0);
+  for (let i = 0; i < antes; i++) p.deleteProperty('marca_logo_' + i);
+  const datos = { marca_nombre: nombre }, trozos = [];
+  for (let i = 0; i < logo.length; i += 8000) trozos.push(logo.slice(i, i + 8000));
+  trozos.forEach((t, i) => { datos['marca_logo_' + i] = t; });
+  datos.marca_trozos = String(trozos.length);
+  p.setProperties(datos);
+  return marca_();
+}
+
+function marca_() {
+  const p = PropertiesService.getUserProperties();
+  const n = Number(p.getProperty('marca_trozos') || 0);
+  let logo = '';
+  for (let i = 0; i < n; i++) logo += p.getProperty('marca_logo_' + i) || '';
+  return { nombre: p.getProperty('marca_nombre') || '', logo: logo };
 }
 
 /** Marca (o desmarca) como hecho algo de «Necesita a una persona». Se guarda en la cuenta. */
@@ -379,7 +405,26 @@ svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-widt
 
 /* ---- Barra lateral */
 .lado{display:flex;flex-direction:column;padding:20px 14px 16px;min-height:0}
-.marca{display:flex;align-items:center;gap:10px;padding:2px 8px 22px}
+.marca{display:flex;align-items:center;gap:10px;padding:8px;margin:-6px 0 14px;border:0;background:transparent;border-radius:12px;text-align:left;width:100%;min-width:0;transition:background .15s}
+.marca:hover{background:var(--suave)}
+.marca .txt{min-width:0}
+.marca-img{display:block;max-width:100%;max-height:56px;object-fit:contain;object-position:left center}
+.marca.con-logo{flex-direction:column;align-items:flex-start;gap:6px}
+.mini{display:none}
+/* Personalizar */
+.capa{position:fixed;inset:0;z-index:50;background:rgba(20,20,20,.32);display:grid;place-items:center;padding:16px}
+.capa[hidden]{display:none}
+.dialogo{width:min(440px,100%);background:var(--tarjeta);border-radius:18px;box-shadow:0 24px 60px -20px rgba(0,0,0,.35);padding:20px}
+.dialogo h2{font-size:17px;margin:0 0 4px;letter-spacing:-.01em}
+.dialogo .sub{color:var(--sec);font-size:13px;margin-bottom:16px}
+.campo{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:13px;font-weight:500}
+.campo input[type=text]{border:1px solid var(--linea-f);border-radius:10px;padding:9px 12px;font-size:14px;font-weight:400}
+.campo input[type=text]:focus{outline:0;border-color:var(--tinta)}
+.vista-logo{height:110px;border:1px dashed var(--linea-f);border-radius:12px;display:grid;place-items:center;background:var(--app);color:var(--ter);font-weight:400;padding:14px}
+.vista-logo img{max-width:100%;max-height:80px;object-fit:contain}
+.fila-b{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fila-b .estado{flex:1;font-size:12.5px;color:var(--sec);font-weight:400}
+.dialogo .pie-d{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
 .logo{width:34px;height:34px;border-radius:10px;background:var(--tinta);color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px;letter-spacing:.02em;flex:none}
 .marca .n{font-weight:600;font-size:15px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .marca .s{font-size:12px;color:var(--sec)}
@@ -616,8 +661,9 @@ textarea:focus{outline:0}
 @media (max-width:1180px){
   .app{grid-template-columns:76px minmax(0,1fr)}
   .lado{padding:18px 12px;align-items:center}
-  .marca{padding:2px 0 20px}
+  .marca{padding:4px;justify-content:center}
   .marca .txt,.nav .t,.nav .c,.lado .pie{display:none}
+  .marca-img{max-width:52px;max-height:40px;object-position:center}
   .nav button{position:relative;width:44px;height:44px;justify-content:center;padding:0}
   .nav button .c.on{display:block;position:absolute;top:3px;right:1px;font-size:10px;padding:0 5px}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -640,6 +686,9 @@ textarea:focus{outline:0}
   .principal{border-left:0}
   .top{padding:12px 16px;min-height:56px;padding-top:max(12px,env(safe-area-inset-top))}
   .migas .ruta{display:none}
+  .mini{display:inline-flex;align-items:center;border:0;background:transparent;padding:0;margin-right:4px}
+  .mini img{max-height:26px;max-width:110px;object-fit:contain}
+  .mini .logo{width:28px;height:28px;border-radius:8px;font-size:11px}
   .cuerpo{padding:18px 16px 28px}
   .cabeza{flex-direction:column;align-items:stretch;gap:14px;margin-bottom:16px}
   .cabeza h1{font-size:25px}
@@ -693,7 +742,7 @@ textarea:focus{outline:0}
 <body>
 <div class="marco"><div class="app" id="app">
   <aside class="lado">
-    <div class="marca"><div class="logo" id="logo">··</div><div class="txt"><div class="n" id="negocio">Tu negocio</div><div class="s">Correo con agente</div></div></div>
+    <button class="marca" id="marca" title="Cambiar el nombre y el logo"></button>
     <nav class="nav" id="nav"></nav>
     <div class="pie" id="lado-pie"></div>
   </aside>
@@ -716,6 +765,19 @@ textarea:focus{outline:0}
   </section>
 </div></div>
 <nav class="pestanas" id="pestanas"></nav>
+<div class="capa" id="capa" hidden>
+  <form class="dialogo" id="dialogo" role="dialog" aria-modal="true" aria-labelledby="d-titulo">
+    <h2 id="d-titulo">Tu negocio en el panel</h2>
+    <div class="sub">El nombre y el logo que ves arriba. Se guardan en tu cuenta.</div>
+    <label class="campo">Nombre<input type="text" id="d-nombre" maxlength="60" placeholder="Gestoría Arcos"></label>
+    <div class="campo">Logo
+      <div class="vista-logo" id="d-vista">Sin logo</div>
+      <div class="fila-b"><label class="boton" for="d-archivo">Subir logo</label><input type="file" id="d-archivo" accept="image/png,image/jpeg,image/webp" hidden>
+        <button type="button" class="boton fantasma" id="d-quitar">Quitar</button><span class="estado" id="d-estado">PNG o JPG. El blanco de los bordes se recorta solo.</span></div>
+    </div>
+    <div class="pie-d"><button type="button" class="boton fantasma" id="d-cancelar">Cancelar</button><button type="submit" class="boton negro" id="d-guardar">Guardar</button></div>
+  </form>
+</div>
 <script>
 var $ = function(id){ return document.getElementById(id); };
 var ICONOS = {
@@ -785,7 +847,7 @@ function saludo(){ var h = new Date().getHours(); return h >= 6 && h < 14 ? 'Bue
 // ---- Estado
 var vista = 'resumen', actual = null, original = '';
 var convs = null, dias = {}, fechas = [], dia = null, hechos = {};
-var verTodos = false, busqueda = '', filtroFact = 'todas', cargadoResumen = false;
+var verTodos = false, busqueda = '', filtroFact = 'todas', marca = { nombre:'', logo:'' };
 var porId = {};
 function porContestar(c){ return c.borrador || (!c.ultimoMio && !c.sospechoso); }
 function pendientes(){ return (convs || []).filter(porContestar).length; }
@@ -802,7 +864,7 @@ function diaDesdeEtiquetas(){
     totales:{ procesados:correos.length, facturas:fac, borradores:bor, minutos_ahorrados: fac*4 + bor*3 + Math.max(0, correos.length - fac - bor) } };
 }
 function diaActual(){ return dia && dias[dia] ? dias[dia] : (convs ? diaDesdeEtiquetas() : null); }
-function negocio(){ for (var i = 0; i < fechas.length; i++) if (dias[fechas[i]].negocio) return dias[fechas[i]].negocio; return ''; }
+function negocio(){ if (marca.nombre) return marca.nombre; for (var i = 0; i < fechas.length; i++) if (dias[fechas[i]].negocio) return dias[fechas[i]].negocio; return ''; }
 function revisionDe(hilo){
   for (var i = 0; i < fechas.length; i++){
     var cs = dias[fechas[i]].correos;
@@ -829,8 +891,9 @@ function ir(v, hilo, guardar){
 var NAV = [['resumen','Resumen'],['correos','Correos'],['facturas','Facturas']];
 function pintarMarco(){
   var neg = negocio();
-  $('negocio').textContent = neg || 'Tu correo';
-  $('logo').textContent = neg ? iniciales(neg) : '··';
+  var m = $('marca'); m.innerHTML = ''; m.classList.toggle('con-logo', !!marca.logo);
+  if (marca.logo) m.append(el('img',{class:'marca-img', src:marca.logo, alt:neg || 'Logo'}), el('div',{class:'txt'}, el('div',{class:'s'}, 'Correo con agente')));
+  else m.append(el('div',{class:'logo'}, neg ? iniciales(neg) : '··'), el('div',{class:'txt'}, el('div',{class:'n'}, neg || 'Tu negocio'), el('div',{class:'s'}, 'Correo con agente')));
   document.title = neg ? 'Correo · ' + neg : 'Panel del correo';
   var n = pendientes(), d = diaActual(), nf = d ? d.correos.filter(function(c){ return c.tipo === 'Factura'; }).length : 0;
   var cuentas = { correos: convs ? n : null, facturas: nf || null };
@@ -850,6 +913,7 @@ function pintarMarco(){
   // Barra de arriba
   var top = $('top'); top.innerHTML = '';
   var titulo = {resumen:'Resumen', correos:'Correos', facturas:'Facturas'}[vista];
+  top.append(el('button',{class:'mini', title:'Cambiar el nombre y el logo', onclick:abrirPersonalizar}, marca.logo ? el('img',{src:marca.logo, alt:neg || 'Logo'}) : el('span',{class:'logo'}, neg ? iniciales(neg) : '··')));
   top.append(el('div',{class:'migas'}, el('span',{class:'ruta'}, neg || 'Correo'), el('span',{class:'sep ruta'}, '/'), el('b',{}, titulo)));
   if ((vista === 'resumen' || vista === 'facturas') && fechas.length) top.append(selectorDia());
   else if (vista === 'correos') top.append(el('span',{class:'gris', style:'font-size:13px'}, convs ? (n ? n + ' por contestar' : 'Todo contestado') : ''));
@@ -1227,12 +1291,72 @@ function cargar(){
   llamar('datosResumenes').then(function(r){
     dias = r.dias || {}; fechas = Object.keys(dias).sort().reverse(); dia = fechas[0] || null;
     hechos = {}; (r.hechos || []).forEach(function(id){ hechos[id] = true; });
+    if (r.marca) marca = r.marca;
     pintarMarco();
     if (vista === 'resumen') pintarResumen(); else if (vista === 'facturas') pintarFacturas(); else if (actual && $('texto') == null) abrirHilo(actual);
     else if (actual && revisionDe(actual) && !document.querySelector('.revision')) abrirHilo(actual);
   }).catch(function(){ dias = {}; fechas = []; pintarMarco(); if (vista === 'resumen') pintarResumen(); });
 }
 $('buscar').addEventListener('input', function(e){ busqueda = e.target.value; pintarLista(); });
+
+// ---- Personalizar: nombre y logo del negocio
+var logoNuevo = '';
+function abrirPersonalizar(){
+  logoNuevo = marca.logo;
+  $('d-nombre').value = negocio();
+  $('d-estado').textContent = 'PNG o JPG. El blanco de los bordes se recorta solo.'; $('d-estado').className = 'estado';
+  vistaLogo(); $('capa').hidden = false; $('d-nombre').focus();
+}
+function cerrarPersonalizar(){ $('capa').hidden = true; $('d-archivo').value = ''; }
+function vistaLogo(){ var v = $('d-vista'); v.innerHTML = ''; v.append(logoNuevo ? el('img',{src:logoNuevo, alt:'Logo'}) : 'Sin logo'); $('d-quitar').hidden = !logoNuevo; }
+// Recorta el fondo blanco o transparente de los bordes y lo deja a un tamaño de logo.
+function prepararLogo(img){
+  var c = document.createElement('canvas'), w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, 1200 / Math.max(w, h));
+  c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+  var x = c.getContext('2d'); x.drawImage(img, 0, 0, c.width, c.height);
+  var d = x.getImageData(0, 0, c.width, c.height).data, x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+  for (var y = 0; y < c.height; y++) for (var i = 0; i < c.width; i++){
+    var o = (y * c.width + i) * 4;
+    if (d[o+3] > 20 && Math.min(d[o], d[o+1], d[o+2]) < 225){ if (i < x0) x0 = i; if (i > x1) x1 = i; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  }
+  if (x1 < 0){ x0 = 0; y0 = 0; x1 = c.width - 1; y1 = c.height - 1; }
+  var cw = x1 - x0 + 1, ch = y1 - y0 + 1, f = Math.min(1, 360 / cw, 140 / ch);
+  var s = document.createElement('canvas'); s.width = Math.max(1, Math.round(cw * f)); s.height = Math.max(1, Math.round(ch * f));
+  var sx = s.getContext('2d'); sx.imageSmoothingQuality = 'high'; sx.drawImage(c, x0, y0, cw, ch, 0, 0, s.width, s.height);
+  // Lo casi blanco pasa a transparente, para que el logo quede bien sobre cualquier fondo.
+  var p = sx.getImageData(0, 0, s.width, s.height);
+  for (var j = 0; j < p.data.length; j += 4){ var m = Math.min(p.data[j], p.data[j+1], p.data[j+2]); if (m > 240) p.data[j+3] = 0; else if (m > 215) p.data[j+3] = Math.round(p.data[j+3] * (240 - m) / 25); }
+  sx.putImageData(p, 0, 0);
+  var url = s.toDataURL('image/png');
+  if (url.length > 110000){ var w2 = s.toDataURL('image/webp', .9); if (w2.indexOf('data:image/webp') === 0 && w2.length < url.length) url = w2; }
+  return url;
+}
+$('d-archivo').addEventListener('change', function(e){
+  var f = e.target.files && e.target.files[0]; if (!f) return;
+  if (!/^image\/(png|jpeg|webp)$/.test(f.type)){ $('d-estado').textContent = 'Tiene que ser una imagen PNG, JPG o WebP.'; $('d-estado').className = 'estado error'; return; }
+  var lector = new FileReader();
+  lector.onload = function(){
+    var img = new Image();
+    img.onload = function(){
+      try { logoNuevo = prepararLogo(img); vistaLogo(); $('d-estado').textContent = logoNuevo.length > 110000 ? 'Es muy grande: prueba con una imagen más sencilla.' : 'Listo. Pulsa «Guardar».'; $('d-estado').className = 'estado' + (logoNuevo.length > 110000 ? ' error' : ''); }
+      catch (err) { $('d-estado').textContent = 'No he podido leer esa imagen.'; $('d-estado').className = 'estado error'; }
+    };
+    img.onerror = function(){ $('d-estado').textContent = 'No he podido leer esa imagen.'; $('d-estado').className = 'estado error'; };
+    img.src = lector.result;
+  };
+  lector.readAsDataURL(f);
+});
+$('d-quitar').addEventListener('click', function(){ logoNuevo = ''; vistaLogo(); });
+$('d-cancelar').addEventListener('click', cerrarPersonalizar);
+$('capa').addEventListener('click', function(e){ if (e.target === $('capa')) cerrarPersonalizar(); });
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !$('capa').hidden) cerrarPersonalizar(); });
+$('dialogo').addEventListener('submit', function(e){
+  e.preventDefault();
+  var b = $('d-guardar'); b.disabled = true; $('d-estado').textContent = 'Guardando…'; $('d-estado').className = 'estado';
+  llamar('guardarMarca', $('d-nombre').value, logoNuevo).then(function(m){ marca = m; b.disabled = false; cerrarPersonalizar(); pintarMarco(); if (vista === 'resumen') pintarResumen(); })
+    .catch(function(err){ b.disabled = false; $('d-estado').textContent = err.message; $('d-estado').className = 'estado error'; });
+});
+$('marca').addEventListener('click', abrirPersonalizar);
 document.addEventListener('click', function(){ document.querySelectorAll('.kpi.abierta').forEach(function(k){ k.classList.remove('abierta'); k.setAttribute('aria-expanded','false'); }); });
 window.addEventListener('beforeunload', function(e){ if (cambiado()){ e.preventDefault(); e.returnValue = ''; } });
 var ancho = window.innerWidth;

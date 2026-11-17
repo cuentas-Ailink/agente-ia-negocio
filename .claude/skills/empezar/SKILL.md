@@ -51,7 +51,7 @@ Si lo quiere instalar, escribe estos pasos **como lista numerada, uno por línea
 
 Antes del paso 1, pregunta si tiene varias cuentas de Google abiertas en el navegador. Si es así, que lo haga todo en una ventana privada con solo la cuenta del negocio: con varias cuentas, Google falla al dar los permisos («No se puede abrir el archivo en estos momentos»). Si aun así falla, que en el editor elija la función «datosBandeja» y pulse «Ejecutar» para aceptar los permisos, y después implemente.
 
-Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y, si aún no lo has hecho en esta pasada, deja el borrador del resumen como dice el paso 6 de `pasada-diaria`. Después `python3 herramientas/panel.py --abrir`, que ya abre el panel de Google. Dile que lo guarde en marcadores y, en el móvil, que lo abra con la misma cuenta y use «Añadir a pantalla de inicio».
+Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y, si aún no lo has hecho en esta pasada, deja el borrador del resumen como dice el paso 6 de `pasada-diaria`. Después `python3 herramientas/panel.py --abrir`, que ya abre el panel de Google. Dile que lo guarde en marcadores y, en el móvil, que lo abra con la misma cuenta y use «Añadir a pantalla de inicio». Para poner el logo y el nombre de su negocio: que pulse el nombre de arriba a la izquierda (en el móvil, el icono de arriba), «Subir logo» y «Guardar».
 
 ## 5. Cada mañana, solo
 

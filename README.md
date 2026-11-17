@@ -48,7 +48,7 @@ Descarga la carpeta, ábrela en la app de Claude (Code) y escribe **«empezamos�
 3. «Implementar» → «Nueva implementación» → «Aplicación web». Ejecutar como **Yo**; quién tiene acceso: **Solo yo**. Acepta los permisos.
 4. Copia la URL que acaba en `/exec` y pégasela a Claude: «este es el panel: URL». Él ejecuta `python3 herramientas/panel.py --chat URL`.
 
-Guárdala en marcadores y, en el móvil, «Añadir a pantalla de inicio»: se abre como una app. Solo tu cuenta puede abrir esa página. El resumen de cada pasada lo deja el agente en un borrador interno llamado «Agente · resumen AAAA-MM-DD», que no se envía nunca; el panel guarda los últimos 30 días.
+Guárdala en marcadores y, en el móvil, «Añadir a pantalla de inicio»: se abre como una app. Para poner tu logo y el nombre de tu negocio, pulsa el nombre de arriba a la izquierda. Solo tu cuenta puede abrir esa página. El resumen de cada pasada lo deja el agente en un borrador interno llamado «Agente · resumen AAAA-MM-DD», que no se envía nunca; el panel guarda los últimos 30 días.
 
 ## Adaptarlo a tu negocio
 
