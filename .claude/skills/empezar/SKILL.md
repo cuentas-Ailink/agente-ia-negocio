@@ -1,6 +1,6 @@
 ---
 name: empezar
-description: Puesta en marcha guiada del agente, paso a paso (negocio, Gmail, primera pasada, panel en el móvil y tarea de cada mañana; WhatsApp, opcional). Úsala cuando escriban «empezamos», «hola», «¿qué hago?», «configúralo», «ayúdame a instalarlo», «quiero WhatsApp», o la primera vez que abren la carpeta.
+description: Puesta en marcha guiada del agente, paso a paso (negocio, Gmail, primera pasada, panel en el móvil y tarea de cada mañana; WhatsApp y pasada en la nube, opcionales). Úsala cuando escriban «empezamos», «hola», «¿qué hago?», «configúralo», «ayúdame a instalarlo», «quiero WhatsApp», «quiero la pasada en la nube», o la primera vez que abren la carpeta.
 ---
 
 # Puesta en marcha
@@ -61,6 +61,21 @@ Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y, si aún
 - Si no la tienes, dile dónde crearla en la app de Claude, con ese mismo texto.
 - Cuando esté creada, escribe la hora en `negocio/rutina.txt` (por ejemplo `08:00`) para que el estado la marque como hecha.
 - Recuérdale que el ordenador tiene que estar encendido y con la app de Claude abierta a esa hora.
+- Dile en una línea que hay otra forma, en la nube, para que la pasada se haga con el ordenador apagado, y que se la explicas si la quiere (escribiendo «quiero la pasada en la nube»).
+
+## En la nube (opcional, solo si lo pide)
+
+Explícalo en 2 líneas: la pasada la hace Claude en sus servidores cada mañana, aunque el ordenador esté apagado. A cambio necesita una cuenta de GitHub, donde vive una copia privada de esta carpeta con su negocio.
+
+Los pasos **como lista numerada**:
+
+1. En github.com, con su cuenta: «New repository», un nombre (por ejemplo agente-correo-minegocio), «Private» y «Create repository».
+2. En ese repositorio: «uploading an existing file» (o «Add file» → «Upload files»). Que arrastre **todo el contenido** de esta carpeta, incluida `negocio/` con su negocio y `memoria/`, y pulse «Commit changes». La carpeta `.claude/` es oculta: en el Mac se ve en Finder con Cmd+Mayús+punto. Sin ella el agente no tiene sus instrucciones.
+3. En claude.ai → «Ajustes» → «Conectores»: Gmail conectado con la cuenta del negocio (el mismo de antes).
+4. En claude.ai/code, que dé acceso de GitHub a ese repositorio (lo pide la propia página la primera vez) y cree una tarea programada **en la nube** sobre ese repositorio, cada día a la hora elegida, con este texto: «Haz la pasada diaria. Al terminar, si has aprendido algo nuevo, guarda memoria/ con un commit en este repositorio y súbelo». Así no pierde lo que aprende.
+5. Prueba: que la lance una vez a mano y mire que en Gmail aparecen las etiquetas y los borradores, y en el panel el resumen.
+
+Si la monta en la nube, que pause la tarea del ordenador para no tener dos. Y recuérdale: el repositorio tiene que ser **privado**, porque la memoria y los resúmenes llevan datos de sus clientes.
 
 ## WhatsApp (opcional, solo si lo pide)
 
