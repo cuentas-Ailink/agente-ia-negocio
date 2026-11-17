@@ -1055,10 +1055,13 @@ function fechaDia(f){ var p = f.split('-').map(Number); return new Date(p[0], p[
 function fechaLarga(f){ var t = fechaDia(f).toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}); return t.charAt(0).toUpperCase() + t.slice(1); }
 function esHoy(f){ return fechaDia(f).toDateString() === new Date().toDateString(); }
 function nombreDe(de){ var s = String(de || '').trim(); var m = s.match(/^"?([^"<]+?)"?\s*</); return m ? m[1].trim() : s.replace(/[<>]/g, ''); }
+var NO_CUENTAN = /^(s|l|sl|sa|slu|sll|scp|cb|sc|y|e|de|del|la|las|los|el|i|d)$/i;
 function iniciales(n){
   var p = String(n || '').replace(/[^\p{L}\p{N}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean);
+  var q = p.filter(function(w){ return !NO_CUENTAN.test(w); });
+  if (q.length) p = q;
   if (!p.length) return '·';
-  return ((p[0][0] || '') + (p.length > 1 ? p[p.length-1][0] : (p[0][1] || ''))).toUpperCase();
+  return ((p[0][0] || '') + (p.length > 1 ? p[1][0] : (p[0][1] || ''))).toUpperCase();
 }
 function saludo(){ var h = new Date().getHours(); return h >= 6 && h < 14 ? 'Buenos días' : (h >= 14 && h < 21 ? 'Buenas tardes' : 'Buenas noches'); }
 
@@ -1332,7 +1335,7 @@ function pintarFacturas(){
     var dif = f.diferencia ? (f.diferencia > 0 ? '+' : '') + eur(f.diferencia) : '';
     tb.append(el('tr',{class:'fila', tabindex:'0', title:'Abrir el correo', onclick:function(){ ir('correos', c.hilo); }, onkeydown:function(ev){ if (ev.key === 'Enter') ir('correos', c.hilo); }},
       el('td',{}, el('div',{class:'prov'}, el('span',{class:'ini'}, iniciales(f.emisor || nombreDe(c.de))),
-        el('div',{style:'min-width:0'}, el('div',{class:'nm'}, f.emisor || 'No se lee'), el('div',{class:'nr'}, f.numero ? 'N.º ' + f.numero : 'Sin número')))),
+        el('div',{style:'min-width:0'}, el('div',{class:'nm'}, f.emisor || nombreDe(c.de)), el('div',{class:'nr'}, f.numero ? 'N.º ' + f.numero : (f.emisor ? 'Sin número' : 'No se lee'))))),
       el('td',{class:'col-cliente gris'}, c.cliente || nombreDe(c.de)),
       el('td',{class:'num col-total'}, eur(f.total_factura)),
       el('td',{class:'col-estado', title: ESTADO_F[e] || 'Revisar'}, el('span',{class:'punto ' + cls}), el('span',{class:'solo-lector'}, ESTADO_F[e] || 'Revisar')),
