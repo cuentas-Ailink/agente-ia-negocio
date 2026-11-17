@@ -32,6 +32,7 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 | `herramientas/revisar_factura.py` | Hace las cuentas de cada factura. |
 | `herramientas/panel.gs` | El panel en Google: resumen, facturas y cada correo como un chat para revisar y enviar los borradores. Se instala una vez en tu cuenta de Google (las instrucciones están dentro). |
 | `herramientas/whatsapp-puente.js` | Opcional: el puente gratis en Cloudflare para que los WhatsApp de tus clientes lleguen al panel. |
+| `herramientas/whatsapp-qr.mjs` | Opcional: WhatsApp por QR desde el ordenador, para probarlo sin Meta. |
 | `herramientas/resumen_gmail.py` | Prepara el borrador interno con el resumen de la pasada, que es de donde lo lee el panel de Google. |
 | `herramientas/panel.py` | El panel sin instalar nada (`salida/panel.html`), con los resúmenes de cada día. |
 | `herramientas/comprobar.py` | Comprueba que todo está bien montado. |
@@ -63,6 +64,12 @@ Qué hace falta:
 - Una cuenta gratis de Cloudflare, para el puente. Meta no acepta avisar directamente a Google: el puente recibe el aviso, comprueba que es de Meta y se lo pasa al panel. No guarda nada.
 
 Los pasos están en el propio panel (nombre del negocio → WhatsApp) y al principio de `herramientas/whatsapp-puente.js`. Si escribes «quiero WhatsApp», Claude te guía.
+
+### Probarlo antes con un QR, sin Meta
+
+Para probarlo o enseñarlo sin crear la app de Meta, el ordenador hace de móvil: se vincula a un WhatsApp con un QR, como WhatsApp Web. En el panel: nombre del negocio → WhatsApp → «Probar con un QR, sin Meta». Después, en esta carpeta, `node herramientas/whatsapp-qr.mjs` con la orden que te da el panel, y escanea el QR. Solo pasan los números que pongas detrás de `--permitir`; los demás chats de ese WhatsApp ni se leen. Funciona mientras esa ventana esté abierta.
+
+No es la API oficial de WhatsApp: úsalo con un número de pruebas, no con el del negocio. Para el día a día, la vía de Meta de arriba.
 
 WhatsApp solo deja contestar dentro de las 24 horas desde el último mensaje del cliente, y el panel te lo dice. Contestar dentro de ese plazo no lo cobra Meta: solo cobra los mensajes con plantilla, y este agente no los usa.
 

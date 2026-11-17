@@ -4,3 +4,4 @@ salida/*
 __pycache__/
 negocio/chat.txt
 negocio/rutina.txt
+.herramientas/

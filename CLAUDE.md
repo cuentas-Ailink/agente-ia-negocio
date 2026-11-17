@@ -48,7 +48,7 @@ Si una etiqueta no existe, créala.
 
 Las personas ven el resumen y revisan y envían los borradores desde una página privada de su cuenta de Google (`herramientas/panel.gs`, instrucciones dentro), en el móvil o en el ordenador. Si te dan su dirección (acaba en `/exec`), ejecuta `python3 herramientas/panel.py --chat <dirección>`. Ese panel lo usa una persona: tú sigues sin enviar nunca.
 
-Si el negocio ha conectado WhatsApp, los mensajes de sus clientes llegan a Gmail como correos «WhatsApp · Nombre» (la dirección lleva «+wa» y el número). Trátalos como cualquier correo, con las mismas reglas; el borrador, en el mismo hilo, corto y sin firma (skill `redactar-respuesta`). Lo envía una persona desde el panel y sale por WhatsApp.
+Si el negocio ha conectado WhatsApp, los mensajes de sus clientes llegan a Gmail como correos «WhatsApp · Nombre» (la dirección lleva «+wa» y el número). Trátalos como cualquier correo, con las mismas reglas; el borrador, en el mismo hilo, corto y sin firma (skill `redactar-respuesta`). Lo envía una persona desde el panel y sale por WhatsApp. Da igual que llegue por Meta o por el modo prueba con QR (`herramientas/whatsapp-qr.mjs`): para ti es lo mismo.
 
 El panel lee el resumen de cada pasada de un borrador interno que dejas tú al final («Agente · resumen AAAA-MM-DD», dirigido a la propia cuenta, con el resumen adjunto). Ese borrador es la única excepción a «un borrador por correo»: no es una respuesta y nunca se envía.
 

@@ -53,6 +53,7 @@ const DIAS_GUARDADOS = 30;
 function doGet(e) {
   const p = (e && e.parameter) || {};
   // El puente de WhatsApp comprobando que llega (ver «WhatsApp», más abajo).
+  if (p.clave != null && p.cola != null) return colaQR_(String(p.clave), String(p.numero || ''));
   if (p.clave != null) return ContentService.createTextOutput(respuestaPuente_(String(p.clave)));
   // La implementación de WhatsApp está abierta a «Cualquier usuario»: el panel solo se enseña a la cuenta del negocio.
   if (!esLaCuenta_()) return HtmlService.createHtmlOutput('<p style="font-family:sans-serif">Esta página es privada.</p>');
@@ -437,7 +438,8 @@ function datosHilo(id) {
   const delCliente = todos.filter(m => !m.isDraft() && !esMio_(m, yo) && !esAviso_(m));
   const whatsapp = tel ? {
     telefono: '+' + tel,
-    conectado: !!ajustesWhatsApp_().token,
+    conectado: conectado_(ajustesWhatsApp_()),
+    qr: ajustesWhatsApp_().qr,
     // WhatsApp deja contestar hasta 24 h después del último mensaje del cliente.
     hasta: delCliente.length ? new Date(delCliente[delCliente.length - 1].getDate().getTime() + DIA_MS_).toISOString() : null
   } : null;
@@ -492,15 +494,19 @@ function ajustesWhatsApp_() {
   const p = PropertiesService.getScriptProperties().getProperties();
   return {
     token: p.wa_token || '', numero: p.wa_numero || '', clave: p.wa_clave || '',
-    acuse: p.wa_acuse != null ? p.wa_acuse : ACUSE_POR_DEFECTO, mostrar: p.wa_mostrar || '', dir: p.wa_dir || ''
+    acuse: p.wa_acuse != null ? p.wa_acuse : ACUSE_POR_DEFECTO, mostrar: p.wa_mostrar || '', dir: p.wa_dir || '',
+    qr: p.wa_modo === 'qr'
   };
 }
+
+/** Conectado con Meta (token y número) o en modo prueba por QR (el ordenador hace de móvil). */
+function conectado_(a) { return a.qr ? !!a.clave : !!(a.token && a.numero); }
 
 /** Lo que enseña «Tu negocio → WhatsApp». El token nunca sale de aquí. */
 function datosWhatsApp() {
   const a = ajustesWhatsApp_();
   return {
-    conectado: !!(a.token && a.numero), numero: a.mostrar, id: a.numero, clave: a.clave, acuse: a.acuse,
+    conectado: conectado_(a), qr: a.qr, numero: a.mostrar, id: a.numero, clave: a.clave, acuse: a.acuse,
     dir: a.dir, panel: a.dir && a.clave ? a.dir + '?clave=' + a.clave : ''
   };
 }
@@ -518,15 +524,30 @@ function guardarWhatsApp(token, numero, acuse) {
   const d = JSON.parse(r.getContentText() || '{}');
   if (r.getResponseCode() !== 200) throw new Error(explicarMeta_(d.error));
   props.setProperties({
-    wa_token: token, wa_numero: numero, wa_acuse: String(acuse == null ? a.acuse : acuse).trim().slice(0, 500),
+    wa_modo: 'meta', wa_token: token, wa_numero: numero, wa_acuse: String(acuse == null ? a.acuse : acuse).trim().slice(0, 500),
     wa_clave: a.clave || Utilities.getUuid().replace(/-/g, '').slice(0, 24),
     wa_mostrar: [d.display_phone_number, d.verified_name].filter(Boolean).join(' · ')
   });
   return datosWhatsApp();
 }
 
+/**
+ * Modo prueba por QR: sin Meta. Un ordenador con `node herramientas/whatsapp-qr.mjs` se vincula a un WhatsApp
+ * con un QR (como WhatsApp Web), pasa aquí los mensajes de los números permitidos y recoge lo que envías.
+ * No es la API oficial: solo para probar y enseñar, con un número de pruebas.
+ */
+function activarQR(acuse) {
+  const a = ajustesWhatsApp_();
+  PropertiesService.getScriptProperties().setProperties({
+    wa_modo: 'qr', wa_acuse: String(acuse == null ? a.acuse : acuse).trim().slice(0, 500),
+    wa_clave: a.clave || Utilities.getUuid().replace(/-/g, '').slice(0, 24),
+    wa_mostrar: 'Modo prueba por QR'
+  });
+  return datosWhatsApp();
+}
+
 function quitarWhatsApp() {
-  ['wa_token', 'wa_numero', 'wa_mostrar', 'wa_dir'].forEach(k => PropertiesService.getScriptProperties().deleteProperty(k));
+  ['wa_modo', 'wa_token', 'wa_numero', 'wa_mostrar', 'wa_dir', 'wa_cola'].forEach(k => PropertiesService.getScriptProperties().deleteProperty(k));
   return datosWhatsApp();
 }
 
@@ -534,7 +555,7 @@ function quitarWhatsApp() {
 function respuestaPuente_(clave) {
   const a = ajustesWhatsApp_();
   if (!a.clave || clave !== a.clave) return 'no';
-  return a.token && a.numero ? 'ok' : 'sin-conectar';
+  return conectado_(a) ? 'ok' : 'sin-conectar';
 }
 
 /**
@@ -561,9 +582,10 @@ function guardarPuente(dir) {
 function doPost(e) {
   const a = ajustesWhatsApp_();
   const p = (e && e.parameter) || {};
-  if (!a.clave || !a.token || p.clave !== a.clave) return ContentService.createTextOutput('no');
+  if (!a.clave || !conectado_(a) || p.clave !== a.clave) return ContentService.createTextOutput('no');
   let datos;
   try { datos = JSON.parse(e.postData.contents); } catch (x) { return ContentService.createTextOutput('no'); }
+  if (datos.origen === 'qr') return recibirQR_(datos, a);
   const cerrojo = LockService.getScriptLock();
   if (!cerrojo.tryLock(25000)) return ContentService.createTextOutput('ocupado');
   try {
@@ -706,6 +728,7 @@ function acusar_(tel, a) {
 
 /** Manda un texto por WhatsApp desde el número del negocio. Lanza el error de Meta explicado. */
 function enviarWhatsApp_(tel, texto, a) {
+  if (a.qr) return encolarQR_(tel, texto);
   const r = UrlFetchApp.fetch(GRAPH_ + '/' + a.numero + '/messages', {
     method: 'post', contentType: 'application/json', muteHttpExceptions: true,
     headers: { Authorization: 'Bearer ' + a.token },
@@ -738,6 +761,77 @@ function marcarVisto_(id) {
   }
 }
 
+// ---------------------------------------------------------------- WhatsApp por QR (modo prueba)
+
+const COLA_MAX_ = 50;
+const QR_SIN_SENAL_MS_ = 2 * 60 * 1000;
+
+/** Lo que pasa el ordenador vinculado: mensajes nuevos de los números permitidos, o lo que ya ha enviado. */
+function recibirQR_(datos, a) {
+  if (!a.qr) return ContentService.createTextOutput('no');
+  PropertiesService.getScriptProperties().setProperty('wa_qr_visto', String(Date.now()));
+  const cerrojo = LockService.getScriptLock();
+  if (!cerrojo.tryLock(25000)) return ContentService.createTextOutput('ocupado');
+  try {
+    if (Array.isArray(datos.enviados) && datos.enviados.length) {
+      const fuera = {};
+      datos.enviados.forEach(id => { fuera[String(id)] = true; });
+      guardarCola_(leerCola_().filter(m => !fuera[m.id]));
+    }
+    (datos.mensajes || []).forEach(m => {
+      try {
+        const tel = String(m.tel || '').replace(/\D/g, '');
+        if (!m.id || !tel || yaVisto_(m.id)) return;
+        let adjunto = null;
+        if (m.archivo && m.archivo.base64) {
+          adjunto = Utilities.newBlob(Utilities.base64Decode(m.archivo.base64), m.archivo.mime || 'application/octet-stream',
+            String(m.archivo.nombre || 'archivo').replace(/[\\/\r\n"]/g, ''));
+        }
+        const fecha = new Date(Number(m.fecha) * 1000 || Date.now());
+        insertarEnGmail_(tel, String(m.nombre || '+' + tel).slice(0, 80), String(m.texto || '').slice(0, 20000), adjunto, fecha, m.id);
+        marcarVisto_(m.id);
+        acusar_(tel, a);
+      } catch (err) { console.error('WhatsApp por QR: ' + err.message); }
+    });
+  } finally {
+    cerrojo.releaseLock();
+  }
+  return ContentService.createTextOutput('OK');
+}
+
+/** Lo que el ordenador vinculado tiene que enviar. Lo quita de la cola cuando avisa de que ya ha salido. */
+function colaQR_(clave, numero) {
+  const a = ajustesWhatsApp_();
+  if (!a.clave || clave !== a.clave || !a.qr) return ContentService.createTextOutput(JSON.stringify({ error: 'no' })).setMimeType(ContentService.MimeType.JSON);
+  const props = PropertiesService.getScriptProperties();
+  const tel = numero.replace(/\D/g, '');
+  if (tel && a.mostrar !== '+' + tel + ' · por QR') props.setProperty('wa_mostrar', '+' + tel + ' · por QR');
+  props.setProperty('wa_qr_visto', String(Date.now()));
+  return ContentService.createTextOutput(JSON.stringify({ cola: leerCola_() })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function encolarQR_(tel, texto) {
+  const visto = Number(PropertiesService.getScriptProperties().getProperty('wa_qr_visto') || 0);
+  if (Date.now() - visto > QR_SIN_SENAL_MS_) {
+    throw new Error('El ordenador con el WhatsApp por QR no está conectado: ábrelo con «node herramientas/whatsapp-qr.mjs».');
+  }
+  const cerrojo = LockService.getScriptLock();
+  cerrojo.waitLock(20000);
+  try {
+    const cola = leerCola_();
+    if (cola.length >= COLA_MAX_) throw new Error('Hay demasiados mensajes esperando al ordenador del QR.');
+    const id = 'qr.' + Utilities.getUuid();
+    cola.push({ id: id, tel: tel, texto: texto });
+    guardarCola_(cola);
+    return id;
+  } finally {
+    cerrojo.releaseLock();
+  }
+}
+
+function leerCola_() { return JSON.parse(PropertiesService.getScriptProperties().getProperty('wa_cola') || '[]'); }
+function guardarCola_(cola) { PropertiesService.getScriptProperties().setProperty('wa_cola', JSON.stringify(cola)); }
+
 function resumenId_(id) {
   return Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, String(id)).map(b => ('0' + (b & 255).toString(16)).slice(-2)).join('');
 }
@@ -757,7 +851,7 @@ function enviarPorWhatsApp_(id, tel, texto) {
   if (!texto) throw new Error('El mensaje está vacío.');
   if (texto.length > 4096) throw new Error('WhatsApp no deja enviar más de 4.096 caracteres.');
   const a = ajustesWhatsApp_();
-  if (!a.token || !a.numero) throw new Error('WhatsApp no está conectado: pulsa el nombre del negocio, arriba a la izquierda → WhatsApp.');
+  if (!conectado_(a)) throw new Error('WhatsApp no está conectado: pulsa el nombre del negocio, arriba a la izquierda → WhatsApp.');
   const idMeta = enviarWhatsApp_(tel, texto, a);
   insertarEnGmail_(tel, '', texto, null, new Date(), idMeta || Utilities.getUuid(), { enviado: true, hilo: id });
   const b = hilosConBorrador_()[id];
@@ -1352,7 +1446,7 @@ textarea:focus{outline:0}
         <label class="campo">Token permanente de Meta<input type="password" id="wa-token" autocomplete="off" placeholder="EAAG…"><span class="ayuda">El del usuario del sistema, que no caduca. No se vuelve a enseñar.</span></label>
         <label class="campo">Identificador del número de teléfono<input type="text" id="wa-numero" inputmode="numeric" placeholder="Lo ves en Meta → WhatsApp → Configuración de la API"></label>
         <label class="campo">Respuesta automática al recibir algo<textarea id="wa-acuse" rows="2" maxlength="500"></textarea><span class="ayuda">Un texto fijo, como mucho uno cada 6 horas por cliente. Déjalo vacío para no mandar nada.</span></label>
-        <div class="fila-b"><button type="button" class="boton negro" id="wa-guardar">Conectar WhatsApp</button><button type="button" class="boton fantasma" id="wa-quitar" hidden>Desconectar</button><span class="estado" id="wa-aviso"></span></div>
+        <div class="fila-b"><button type="button" class="boton negro" id="wa-guardar">Conectar WhatsApp</button><button type="button" class="boton" id="wa-qr">Probar con un QR, sin Meta</button><button type="button" class="boton fantasma" id="wa-quitar" hidden>Desconectar</button><span class="estado" id="wa-aviso"></span></div>
       </div>
       <div class="meta" id="wa-meta" hidden>
         <b>Para que lleguen los mensajes</b>
@@ -1360,9 +1454,10 @@ textarea:focus{outline:0}
           <li>En Apps Script: Implementar → Nueva implementación → Aplicación web, acceso «Cualquier usuario». Pega su dirección:
             <div class="fila-b"><input type="text" id="wa-dir" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec"><button type="button" class="boton" id="wa-dir-g">Comprobar</button></div>
             <span class="estado" id="wa-dir-aviso"></span></li>
-          <li>En Cloudflare, el puente (whatsapp-puente.js). Variable PANEL:<code id="wa-panel"></code></li>
-          <li>En Meta → WhatsApp → Configuración → Webhook: la dirección del puente y este token de verificación:<code id="wa-clave"></code></li>
-          <li>En «Campos del webhook», suscríbete a «messages» y publica la app de Meta: sin publicar no llega ningún mensaje de verdad.</li>
+          <li class="solo-meta">En Cloudflare, el puente (whatsapp-puente.js). Variable PANEL:<code id="wa-panel"></code></li>
+          <li class="solo-meta">En Meta → WhatsApp → Configuración → Webhook: la dirección del puente y este token de verificación:<code id="wa-clave"></code></li>
+          <li class="solo-meta">En «Campos del webhook», suscríbete a «messages» y publica la app de Meta: sin publicar no llega ningún mensaje de verdad.</li>
+          <li class="solo-qr" hidden>En el ordenador, en la carpeta del agente (o pídeselo a Claude):<code id="wa-orden"></code>Escanea el QR con el WhatsApp de pruebas (Dispositivos vinculados) y deja la ventana abierta. Solo pasan los números que pongas detrás de --permitir.</li>
         </ol>
       </div>
     </div>
@@ -1819,9 +1914,10 @@ function pintarHilo(h){
   var enviarB = el('button',{class:'boton negro', id:'enviar', onclick:function(){ pedirConfirmacion(h); }}, ico('enviar'), h.whatsapp ? 'Enviar por WhatsApp' : 'Enviar');
   var nota = null;
   if (h.whatsapp){
-    var cerrada = !h.whatsapp.hasta || new Date(h.whatsapp.hasta) <= new Date();
+    var cerrada = !h.whatsapp.qr && (!h.whatsapp.hasta || new Date(h.whatsapp.hasta) <= new Date());
     nota = el('span',{class:'ventana' + (cerrada || !h.whatsapp.conectado ? ' cerrada' : '')},
       !h.whatsapp.conectado ? 'WhatsApp no está conectado: pulsa el nombre del negocio, arriba.' :
+      h.whatsapp.qr ? 'Modo prueba por QR: sale desde el WhatsApp vinculado en el ordenador.' :
       cerrada ? 'Han pasado 24 h desde su último mensaje: WhatsApp no deja contestarle sin un mensaje aprobado.' :
       'Puedes contestar hasta el ' + diaLargo(h.whatsapp.hasta) + ' a las ' + hora(h.whatsapp.hasta) + '.');
     if (cerrada || !h.whatsapp.conectado){ enviarB.disabled = true; enviarB.dataset.bloqueado = '1'; }
@@ -1943,6 +2039,9 @@ function pintarWhatsApp(w){
   $('wa-dir').value = w.dir || ''; $('wa-dir-aviso').textContent = w.dir ? 'Comprobada.' : ''; $('wa-dir-aviso').className = 'estado';
   $('wa-panel').textContent = w.panel || 'Aparece cuando guardes la dirección del paso 1.';
   $('wa-clave').textContent = w.clave || '';
+  $('wa-orden').textContent = w.panel ? 'node herramientas/whatsapp-qr.mjs --panel "' + w.panel + '" --permitir 34600000000' : 'Aparece cuando guardes la dirección del paso 1.';
+  document.querySelectorAll('#wa-meta .solo-meta').forEach(function(li){ li.hidden = !!w.qr; });
+  document.querySelectorAll('#wa-meta .solo-qr').forEach(function(li){ li.hidden = !w.qr; });
 }
 $('wa-dir-g').addEventListener('click', function(){
   var b = $('wa-dir-g'); b.disabled = true; $('wa-dir-aviso').textContent = 'Comprobando…'; $('wa-dir-aviso').className = 'estado';
@@ -1955,6 +2054,11 @@ $('wa-guardar').addEventListener('click', function(){
   llamar('guardarWhatsApp', $('wa-token').value, $('wa-numero').value, $('wa-acuse').value).then(function(w){
     b.disabled = false; $('wa-token').value = ''; pintarWhatsApp(w); $('wa-campos').hidden = true;
   }).catch(function(e){ b.disabled = false; $('wa-aviso').textContent = e.message; $('wa-aviso').className = 'estado error'; });
+});
+$('wa-qr').addEventListener('click', function(){
+  var b = $('wa-qr'); b.disabled = true;
+  llamar('activarQR', $('wa-acuse').value).then(function(w){ b.disabled = false; pintarWhatsApp(w); $('wa-campos').hidden = true; })
+    .catch(function(e){ b.disabled = false; $('wa-aviso').textContent = e.message; $('wa-aviso').className = 'estado error'; });
 });
 $('wa-quitar').addEventListener('click', function(){
   llamar('quitarWhatsApp').then(function(w){ pintarWhatsApp(w); $('wa-campos').hidden = true; });
