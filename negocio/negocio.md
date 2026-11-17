@@ -1,5 +1,7 @@
 # Negocio · Gestoría Arcos
 
+<!-- Ejemplo: Gestoría Arcos es una gestoría inventada para probar el agente. Al adaptarlo a tu negocio, esta línea desaparece. -->
+
 ## El negocio
 - **Nombre:** Gestoría Arcos
 - **A qué se dedica:** gestoría y asesoría contable y fiscal para autónomos y pymes.

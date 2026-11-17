@@ -1,28 +1,32 @@
 # Instalar el agente
 
-Son cuatro pasos y no hace falta programar.
+Son tres pasos. No hace falta programar ni abrir ningún archivo: a partir del tercero te guía el propio agente.
 
 ## 1. Descarga la carpeta
 
-En GitHub, botón **Code → Download ZIP**. Descomprímela donde quieras (por ejemplo, en Documentos).
+En GitHub, botón **Code → Download ZIP**. Descomprímela en el Escritorio o en Documentos.
 
 ## 2. Ábrela en la app de Claude
 
-Abre la app de Claude, ve a **Code** y elige la carpeta que acabas de descomprimir. Con el plan Pro basta.
+Abre la app de Claude, ve a **Code** y elige la carpeta que acabas de descomprimir. Con el plan Pro basta: no hace falta ninguna clave ni pagar aparte.
 
-Comprueba que todo está bien escribiendo: «ejecuta `python3 herramientas/comprobar.py`». Tiene que salir «Sin errores». Si el Mac pide instalar las herramientas de desarrollo para usar `python3`, acepta: es un aviso de Apple y tarda unos minutos.
+## 3. Escribe «empezamos»
 
-## 3. Conecta tu Gmail
+El agente te lleva paso a paso y te dice en cada uno si ya está hecho:
 
-En la app de Claude: **Ajustes → Conectores → Gmail → Conectar**, con la cuenta del negocio. Para probar, usa primero una cuenta de Gmail de pruebas.
+1. **Tu negocio.** Viene preparado con una gestoría de ejemplo. Si quieres el tuyo, le dices a qué se dedica en una frase y te hace como mucho 5 preguntas.
+2. **Gmail.** Comprueba que está conectado. Si no, te dice dónde: **Ajustes → Conectores → Gmail → Conectar**, con la cuenta del negocio (para probar, mejor una cuenta de pruebas).
+3. **La primera pasada.** Ordena la bandeja, revisa las facturas, deja las respuestas en borrador y te abre el panel. No envía ni borra nada.
+4. **El chat para contestar** (opcional, 3 minutos). Te da los pasos para instalarlo en tu cuenta de Google y lo conecta al panel.
+5. **Cada mañana, solo.** Te dice cómo crear la tarea programada en la app de Claude, con el texto «Haz la pasada diaria».
 
-## 4. Adáptalo y pruébalo
+¿Lo dejas a medias? Otro día escribe «empezamos» y sigue donde lo dejaste.
 
-1. Escribe: «Adapta el agente a mi negocio: …» (si es una gestoría, ya viene preparado).
-2. Escribe: «Haz la pasada». Verás cómo etiqueta los correos, revisa las facturas y deja los borradores. Míralos en Gmail antes de enviar nada.
+## Si algo no va
 
-## 5. Que funcione solo cada mañana
-
-En la app de Claude, crea una **tarea programada** en esta carpeta, cada día a las 8:00, con el texto:
-
-> Haz la pasada diaria.
+| Lo que pasa | Qué hacer |
+| --- | --- |
+| El Mac pide instalar las herramientas de desarrollo | Acepta: es un aviso de Apple para usar Python y tarda unos minutos. |
+| El agente dice que no ve Gmail | Conecta Gmail en Ajustes → Conectores y abre una conversación nueva en la carpeta. |
+| Quieres cambiar algo (precios, tono, un tipo de correo) | Díselo al agente con tus palabras: lo cambia él. |
+| Algo falla sin explicación | Escribe «comprueba que todo está bien»: ejecuta `herramientas/comprobar.py` y te dice qué arreglar. |

@@ -26,18 +26,19 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 | `memoria/MEMORIA.md` | Lo que el agente aprende (máximo 20 líneas). |
 | `contrato-de-tarea.md` | Lo que entrega cada pasada, cómo se comprueba, sus límites y qué hace si algo falla. |
 | `perfiles/` | Puntos de partida: gestoría, clínica, inmobiliaria y genérico. |
-| `.claude/skills/` | Las habilidades: `pasada-diaria`, `revisar-factura`, `redactar-respuesta` y `adaptar-negocio`. |
+| `.claude/skills/` | Las habilidades: `empezar` (la puesta en marcha), `pasada-diaria`, `revisar-factura`, `redactar-respuesta` y `adaptar-negocio`. |
 | `.claude/agents/` | Los subagentes: `clasificador`, `revisor-documentos` y `redactor`. |
 | `.claude/settings.json` | Bloquea enviar, responder, reenviar y borrar correos. |
 | `herramientas/revisar_factura.py` | Hace las cuentas de cada factura. |
 | `herramientas/panel.py` | Genera el panel (`salida/panel.html`) con los resúmenes de cada día. |
 | `herramientas/chat.gs` | El chat para revisar y enviar los borradores. Se instala una vez en tu cuenta de Google (las instrucciones están dentro). |
 | `herramientas/comprobar.py` | Comprueba que todo está bien montado. |
+| `herramientas/estado.py` | Dice qué pasos de la puesta en marcha están hechos. |
 | `salida/` | El resumen de cada día (`AAAA-MM-DD.json`), el panel y las facturas descargadas. |
 
 ## Instalarlo
 
-Sigue [INSTALAR.md](INSTALAR.md): descargar la carpeta, abrirla en la app de Claude, conectar Gmail y programar la tarea diaria.
+Descarga la carpeta, ábrela en la app de Claude (Code) y escribe **«empezamos»**. El agente te guía en 5 pasos y te dice en cada uno si ya está hecho: tu negocio, Gmail, la primera pasada, el chat y la tarea de cada mañana. Más detalle en [INSTALAR.md](INSTALAR.md).
 
 ## Contestar desde el chat (opcional, 3 minutos)
 

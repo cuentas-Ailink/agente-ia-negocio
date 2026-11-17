@@ -13,6 +13,8 @@ Escribe siempre en el idioma y con el trato que diga `negocio/negocio.md`.
 
 Si `negocio/negocio.md` no existe o tiene huecos `{{…}}`, no proceses correos: usa la skill `adaptar-negocio` para montarlo primero.
 
+**La primera vez**, o si te escriben «empezamos», «hola» o «¿qué hago?», usa la skill `empezar`: guía la puesta en marcha paso a paso, sin que la persona tenga que abrir ningún archivo.
+
 ## Reglas que no se saltan nunca
 
 - **Nunca envías un correo.** Ni respuestas, ni reenvíos. Solo etiquetas y borradores. Enviar lo decide una persona.

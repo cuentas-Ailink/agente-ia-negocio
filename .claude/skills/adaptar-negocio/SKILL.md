@@ -13,7 +13,7 @@ El agente no se toca: solo cambia la carpeta `negocio/`.
    3. Cómo quiere sonar (tú o usted, cercano o formal) y la firma.
    4. Precios o datos que el agente puede dar tal cual.
    5. País (para los impuestos) y quién revisa los borradores.
-2. **Parte del perfil más parecido** de `perfiles/` (gestoria, clinica, inmobiliaria o generico). Cópialo a `negocio/negocio.md`, cambia el título a `# Negocio · <Nombre>` y rellena todos los `{{…}}`. Ajusta la tabla «Tipos de correo» a lo que de verdad le llega: cada fila con su etiqueta, cómo reconocerla, qué hacer, si lleva borrador y qué subagente lo hace (clasificador, revisor-documentos o redactor).
+2. **Parte del perfil más parecido** de `perfiles/` (gestoria, clinica, inmobiliaria o generico). Cópialo a `negocio/negocio.md`, cambia el título a `# Negocio · <Nombre>` y rellena todos los `{{…}}`. No copies la línea `<!-- Ejemplo … -->`: ya no es el ejemplo. Ajusta la tabla «Tipos de correo» a lo que de verdad le llega: cada fila con su etiqueta, cómo reconocerla, qué hacer, si lleva borrador y qué subagente lo hace (clasificador, revisor-documentos o redactor).
 3. **Si no es España**, cambia la sección «Impuestos» por los tipos de su país (por ejemplo, México: IVA 16, 8, 0) y añade `--sin-nif` si no usa NIF español.
 4. **Escribe `negocio/clientes.md`** con los clientes que te dé (o vacío, con la cabecera de la tabla).
 5. **Vacía `memoria/MEMORIA.md`** (deja el título y la explicación) si era de otro negocio.

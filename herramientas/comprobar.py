@@ -23,6 +23,8 @@ for ruta, que in [
     (".claude/skills/pasada-diaria/SKILL.md", "Vuelve a descargar el repositorio."),
     ("herramientas/panel.py", "Vuelve a descargar el repositorio."),
     ("herramientas/chat.gs", "Vuelve a descargar el repositorio."),
+    ("herramientas/estado.py", "Vuelve a descargar el repositorio."),
+    (".claude/skills/empezar/SKILL.md", "Vuelve a descargar el repositorio."),
 ]:
     (ok(f"Existe {ruta}") if os.path.exists(os.path.join(RAIZ, ruta)) else error(f"Falta {ruta}", que))
 
