@@ -20,6 +20,8 @@ El agente te lleva paso a paso y te dice en cada uno si ya está hecho:
 4. **El panel en el móvil y el ordenador** (opcional, 3 minutos). Te da los pasos para instalarlo en tu cuenta de Google: el resumen del día, las facturas y cada correo como un chat para enviar los borradores.
 5. **Cada mañana, solo.** Te dice cómo crear la tarea programada en la app de Claude, con el texto «Haz la pasada diaria».
 
+¿Quieres WhatsApp? Escribe «quiero WhatsApp». Para probarlo, un QR en 5 minutos con un WhatsApp de pruebas; para el día a día con clientes, la vía oficial de Meta. En los dos casos los mensajes llegan al mismo panel.
+
 ¿Lo dejas a medias? Otro día escribe «empezamos» y sigue donde lo dejaste.
 
 ## Si algo no va
@@ -27,6 +29,7 @@ El agente te lleva paso a paso y te dice en cada uno si ya está hecho:
 | Lo que pasa | Qué hacer |
 | --- | --- |
 | El Mac pide instalar las herramientas de desarrollo | Acepta: es un aviso de Apple para usar Python y tarda unos minutos. |
+| Terminal dice «command not found: node» (WhatsApp por QR) | Instala Node.js desde [nodejs.org/es/download](https://nodejs.org/es/download), cierra Terminal y vuelve a abrirlo. |
 | El agente dice que no ve Gmail | Conecta Gmail en Ajustes → Conectores y abre una conversación nueva en la carpeta. |
 | Quieres cambiar algo (precios, tono, un tipo de correo) | Díselo al agente con tus palabras: lo cambia él. |
 | Algo falla sin explicación | Escribe «comprueba que todo está bien»: ejecuta `herramientas/comprobar.py` y te dice qué arreglar. |

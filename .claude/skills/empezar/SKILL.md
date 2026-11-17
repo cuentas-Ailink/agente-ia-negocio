@@ -64,7 +64,7 @@ Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y, si aún
 
 ## WhatsApp (opcional, solo si lo pide)
 
-Si escribe «quiero WhatsApp» o pregunta por ello, explícalo en 2 líneas: los WhatsApp de sus clientes (texto, fotos de facturas, PDF) entran en Gmail como un correo más, el agente los revisa igual y la persona contesta desde el panel. Hace falta una app de Meta con WhatsApp, que el negocio crea con su propio Facebook (una cuenta real, no recién creada), y una cuenta gratis de Cloudflare para el puente.
+Si escribe «quiero WhatsApp» o pregunta por ello, explícalo en 2 líneas: los WhatsApp de sus clientes (texto, fotos de facturas, PDF) entran en Gmail como un correo más, el agente los revisa igual y la persona contesta desde el panel. Para probarlo basta un QR y Node.js en el ordenador. Para el día a día con clientes, la vía oficial: una app de Meta con WhatsApp, que el negocio crea con su propio Facebook (una cuenta real, no recién creada), y una cuenta gratis de Cloudflare para el puente.
 
 Pregúntale antes cuál quiere:
 - **Probarlo ya con un QR, sin Meta** (5 minutos): el ordenador se vincula a un WhatsApp de pruebas, como WhatsApp Web. Para probar o enseñar; no es la API oficial, así que nunca con el número del negocio.
@@ -75,11 +75,11 @@ Si elige el QR, los pasos **como lista numerada**:
 1. En el panel: nombre del negocio → WhatsApp → «Conectar» → «Probar con un QR, sin Meta».
 2. En script.google.com, en «Panel del correo»: «Implementar» → «Nueva implementación» → engranaje → «Aplicación web». Ejecutar como «Yo»; quién tiene acceso: «Cualquier usuario». Copia la dirección que acaba en /exec y pégala en el panel, en el paso 1 → «Comprobar».
 3. Comprueba antes `node -v` (hace falta 20 o superior). Si no está, que lo instale desde https://nodejs.org/es/download (el instalador para Mac, siguiente, siguiente) y espera a que diga «hecho»; no lo instales tú.
-   Pídele la orden que sale en el panel (lleva la dirección y la clave) y el número (o números) que podrán escribir, con prefijo. Ejecútala tú en esta carpeta, en segundo plano porque no termina: `node herramientas/whatsapp-qr.mjs --panel "<la del panel>" --permitir 34600111222`. La primera vez instala la pieza de WhatsApp Web (un minuto).
+   Pídele la orden que sale en el panel (lleva la dirección y la clave) y el número (o números) que podrán escribir, con prefijo. La orden no termina nunca (se queda escuchando), así que en Mac ábresela tú en una ventana de Terminal, que sigue abierta aunque cierre esta conversación: `osascript -e 'tell application "Terminal" to do script "cd <esta carpeta, entre comillas escapadas> && node herramientas/whatsapp-qr.mjs --panel <la del panel, entre comillas escapadas> --permitir 34600111222"'`. Cuida las comillas: la ruta de la carpeta puede llevar espacios y «|». En otro sistema, ejecútala en segundo plano. La primera vez instala la pieza de WhatsApp Web (un minuto).
 4. Se abre una página con el QR: que lo escanee con el WhatsApp de pruebas → Ajustes → Dispositivos vinculados → Vincular un dispositivo.
-5. Prueba: desde uno de los números permitidos, un WhatsApp y una foto a ese WhatsApp. En unos segundos aparecen en el panel, en «Correos». Lo que envíe desde el panel sale por ese WhatsApp.
+5. Prueba: desde uno de los números permitidos, un WhatsApp y una foto a ese WhatsApp. Al momento le llega la respuesta automática (se cambia en el panel, en WhatsApp) y el mensaje sale como leído. Entra en Gmail como «WhatsApp · Nombre»; después de «haz la pasada» aparece en el panel con su borrador. Lo que envíe desde el panel sale por ese WhatsApp.
 
-Funciona mientras la orden siga abierta. Otro día basta con `node herramientas/whatsapp-qr.mjs`: recuerda el panel, los números y la sesión.
+Funciona mientras esa ventana de Terminal siga abierta y el ordenador encendido. Otro día basta con `node herramientas/whatsapp-qr.mjs` en esta carpeta: recuerda el panel, los números y la sesión. Si el móvil dice «Revisa tu conexión» al escanear, cierra la ventana, ejecuta `node herramientas/whatsapp-qr.mjs --desvincular` y vuelve a abrirla.
 
 Si elige Meta: pídele antes estos 3 datos de su app de Meta, y que no te los pegue a ti: los pegará él en el panel y en Cloudflare. Son el token permanente, el identificador del número de teléfono y la clave secreta de la app (Configuración de la app → Básica).
 
