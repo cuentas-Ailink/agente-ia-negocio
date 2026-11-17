@@ -248,7 +248,8 @@ function crearConexionBaileys(qrcode) {
               mensaje.archivo = { base64: datos.toString('base64'), mime: c.mime || 'application/octet-stream',
                 nombre: c.nombre || `${c.tipo === 'foto' ? 'foto' : 'documento'}-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}.${ext}` };
             };
-            await eventos.alMensaje(mensaje);
+            // Doble check azul en cuanto el panel lo tiene: el cliente ve que se ha leído.
+            if (await eventos.alMensaje(mensaje)) await sock.readMessages([m.key]).catch(() => undefined);
           } catch (e) {
             console.log(`No se ha podido leer un mensaje: ${e.message}`);
           }
