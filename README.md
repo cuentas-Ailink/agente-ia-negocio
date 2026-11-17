@@ -67,7 +67,7 @@ Los pasos están en el propio panel (nombre del negocio → WhatsApp) y al princ
 
 ### Probarlo antes con un QR, sin Meta
 
-Para probarlo o enseñarlo sin crear la app de Meta, el ordenador hace de móvil: se vincula a un WhatsApp con un QR, como WhatsApp Web. En el panel: nombre del negocio → WhatsApp → «Probar con un QR, sin Meta». Después, en esta carpeta, `node herramientas/whatsapp-qr.mjs` con la orden que te da el panel, y escanea el QR. Solo pasan los números que pongas detrás de `--permitir`; los demás chats de ese WhatsApp ni se leen. Funciona mientras esa ventana esté abierta.
+Para probarlo o enseñarlo sin crear la app de Meta, el ordenador hace de móvil: se vincula a un WhatsApp con un QR, como WhatsApp Web. En el panel: nombre del negocio → WhatsApp → «Probar con un QR, sin Meta». Después, en esta carpeta, `node herramientas/whatsapp-qr.mjs` con la orden que te da el panel, y escanea el QR. Solo pasan los números que pongas detrás de `--permitir`; los demás chats de ese WhatsApp ni se leen. Funciona mientras esa ventana esté abierta. Necesita Node.js 20 o superior: si Terminal dice «command not found: node», instálalo desde [nodejs.org/es/download](https://nodejs.org/es/download) (el instalador para Mac), abre una ventana nueva de Terminal y repite.
 
 No es la API oficial de WhatsApp: úsalo con un número de pruebas, no con el del negocio. Para el día a día, la vía de Meta de arriba.
 
