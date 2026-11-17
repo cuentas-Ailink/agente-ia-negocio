@@ -485,7 +485,7 @@ function enviar(id, texto) {
 // WhatsApp solo deja contestar dentro de las 24 h desde el último mensaje del cliente: el panel lo enseña.
 
 const GRAPH_ = 'https://graph.facebook.com/v26.0';
-const ACUSE_POR_DEFECTO = 'Recibido, gracias. Lo revisa el equipo y te contestamos por aquí.';
+const ACUSE_POR_DEFECTO = 'Hola, gracias por escribirnos. Hemos recibido tu mensaje y el equipo ya lo está revisando. Te contestamos por aquí.';
 const RE_WA_ = /\+wa(\d{6,15})@/i;
 const HORAS_ENTRE_ACUSES = 6;
 const DIA_MS_ = 24 * 3600 * 1000;
