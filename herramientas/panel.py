@@ -51,6 +51,7 @@ def chat(argv):
     if "--chat" in argv:
         i = argv.index("--chat")
         url = argv[i + 1].strip() if i + 1 < len(argv) else ""
+        url = re.split(r"[?#]", url)[0]  # si se copia con ?hilo=… desde la barra del navegador
         if not re.fullmatch(r"https://script\.google\.com/[^\s\"'<>]+/exec", url):
             sys.exit("La dirección del chat tiene que ser la de tu script de Google y acabar en /exec "
                      "(«Implementar» → «Gestionar implementaciones» → copiar la URL de la aplicación web).")
