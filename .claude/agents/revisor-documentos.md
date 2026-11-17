@@ -10,4 +10,4 @@ Para cada correo que te pasen:
 2. Deja el borrador en el mismo hilo con la skill `redactar-respuesta`, según el estado (correcta, error o revisar).
 3. Nunca envíes ni reenvíes nada.
 
-Devuelve, por correo: id, número de factura, emisor, estado, motivos, total de la factura, total correcto, diferencia, archivo guardado, y el id y enlace del borrador.
+Devuelve, por correo: id, número de factura, emisor, estado, motivos, total de la factura, total correcto, diferencia, archivo guardado, los datos que copiaste de la factura (el JSON que pasaste al programa, tal cual), y el id y enlace del borrador.

@@ -29,6 +29,10 @@
  *   «Agente · resumen AAAA-MM-DD» con el resumen adjunto. No se envía nunca. Este panel guarda los
  *   últimos 30 días y quita los repetidos (si hay dos pasadas el mismo día, vale la última).
  * - Lo que marcas como «Hecho» se guarda en tu cuenta, así que se ve igual en el móvil y en el ordenador.
+ * - Las facturas revisadas van solas a la hoja de Google «Facturas revisadas» (en tu Drive), con fecha, NIF,
+ *   base, IVA, retención, total y estado, lista para pasarla a contabilidad (Archivo → Descargar → CSV o Excel).
+ *   Tiene una pestaña «Por cliente» con las sumas. Se rellena cada vez que abres el panel, sin repetir facturas.
+ *   La primera vez, elige la función «prepararHoja» y pulsa «Ejecutar» (pide permiso para crear la hoja).
  * - El nombre y el logo del negocio se cambian en el propio panel: pulsa el nombre, arriba a la izquierda.
  */
 
@@ -72,7 +76,7 @@ function datosResumenes() {
   fechas.slice(0, DIAS_EN_PANEL).forEach(k => {
     try { dias[k] = compactar_(JSON.parse(porDia[k].adj.getDataAsString('UTF-8')), k); } catch (e) {}
   });
-  return { dias: dias, hechos: hechos_(), marca: marca_() };
+  return { dias: dias, hechos: hechos_(), marca: marca_(), hoja: urlHoja_() };
 }
 
 /** Guarda el nombre y el logo del negocio que enseña el panel. Se guardan en la cuenta, en trozos. */
@@ -126,11 +130,174 @@ function compactar_(d, fecha) {
         borrador: !!c.borrador,
         factura: f ? {
           numero: f.numero || '', emisor: f.emisor || '', estado: f.estado || '', motivos: f.motivos || [],
-          total_factura: num(f.total_factura), total_correcto: num(f.total_correcto), diferencia: num(f.diferencia)
+          total_factura: num(f.total_factura), total_correcto: num(f.total_correcto), diferencia: num(f.diferencia),
+          fecha_factura: f.fecha_factura || '', nif: f.nif || '', base: num(f.base), tipos_iva: f.tipos_iva || [],
+          cuota_iva: num(f.cuota_iva), retencion: num(f.retencion), total: num(f.total)
         } : null
       };
     })
   };
+}
+
+// ---------------------------------------------------------------- la hoja de facturas
+
+const COLUMNAS_HOJA = ['Fecha factura', 'N.º factura', 'Proveedor', 'NIF proveedor', 'Cliente', 'Base imponible',
+  'IVA', 'Cuota IVA', 'Retención IRPF', 'Total factura', 'Estado', 'Observaciones', 'Revisada', 'Correo', 'clave'];
+const COL_CORREO = 14, COL_CLAVE = 15;
+
+/**
+ * Pasa las facturas revisadas a la hoja «Facturas revisadas» de tu Google Drive (la crea la primera vez).
+ * Solo añade las nuevas y actualiza las que han cambiado; lo que escribas tú en otras columnas no se toca.
+ */
+function sincronizarHoja(lista) {
+  const hoja = hojaFacturas_();
+  const yo = Session.getEffectiveUser().getEmail();
+  const ultima = hoja.getLastRow();
+  const antes = ultima > 1 ? hoja.getRange(2, 1, ultima - 1, COL_CLAVE).getValues() : [];
+  const filaDe = {};
+  antes.forEach((f, i) => { if (f[COL_CLAVE - 1]) filaDe[f[COL_CLAVE - 1]] = i; });
+  const nuevas = [], enlaces = [], vistas = {};
+  let cambios = 0;
+  (lista || []).forEach(x => {
+    if (!x || !x.factura) return;
+    const fila = filaHoja_(x);
+    const clave = fila[COL_CLAVE - 1];
+    if (vistas[clave]) return;
+    vistas[clave] = true;
+    if (clave in filaDe) {
+      const i = filaDe[clave];
+      const igual = fila.every((v, c) => c === COL_CORREO - 1 || comparable_(v) === comparable_(antes[i][c]));
+      if (!igual) { hoja.getRange(i + 2, 1, 1, COL_CORREO - 1).setValues([fila.slice(0, COL_CORREO - 1)]); cambios++; }
+    } else {
+      nuevas.push(fila);
+      enlaces.push([SpreadsheetApp.newRichTextValue().setText('Abrir')
+        .setLinkUrl('https://mail.google.com/mail/?authuser=' + encodeURIComponent(yo) + '#all/' + (x.hilo || x.id)).build()]);
+    }
+  });
+  if (nuevas.length) {
+    const desde = Math.max(ultima, 1) + 1;
+    hoja.getRange(desde, 1, nuevas.length, COL_CLAVE).setValues(nuevas);
+    hoja.getRange(desde, COL_CORREO, nuevas.length, 1).setRichTextValues(enlaces);
+  }
+  const total = hoja.getLastRow() - 1;
+  if ((nuevas.length || cambios) && total > 1) {
+    hoja.getRange(2, 1, total, COL_CLAVE).sort([{ column: 13, ascending: false }, { column: 1, ascending: false }]);
+  }
+  return { url: hoja.getParent().getUrl(), nuevas: nuevas.length, cambiadas: cambios, total: total };
+}
+
+/** Ejecútala una vez desde el editor: crea la hoja con las facturas que ya hay y acepta el permiso nuevo. */
+function prepararHoja() {
+  const r = datosResumenes();
+  const lista = [];
+  Object.keys(r.dias).forEach(k => (r.dias[k].correos || []).forEach(c => {
+    if (c.factura) lista.push({ id: c.id, hilo: c.hilo, dia: k, cliente: c.cliente, factura: c.factura });
+  }));
+  const s = sincronizarHoja(lista);
+  Logger.log('Hoja de facturas (' + s.total + ' facturas): ' + s.url);
+  return s.url;
+}
+
+/** La dirección de la hoja, si ya existe. */
+function urlHoja_() {
+  const id = PropertiesService.getUserProperties().getProperty('hoja_facturas');
+  return id ? 'https://docs.google.com/spreadsheets/d/' + id + '/edit' : '';
+}
+
+function hojaFacturas_() {
+  const props = PropertiesService.getUserProperties();
+  const id = props.getProperty('hoja_facturas');
+  if (id) {
+    try {
+      const libro = SpreadsheetApp.openById(id);
+      return libro.getSheetByName('Facturas') || libro.getSheets()[0];
+    } catch (e) { /* la han borrado: se crea otra */ }
+  }
+  const nombre = (props.getProperty('marca_nombre') || '').trim();
+  const libro = SpreadsheetApp.create('Facturas revisadas' + (nombre ? ' · ' + nombre : ''));
+  libro.setSpreadsheetLocale('es_ES');
+  libro.setSpreadsheetTimeZone(Session.getScriptTimeZone());
+  const hoja = libro.getSheets()[0];
+  hoja.setName('Facturas');
+  const n = COLUMNAS_HOJA.length;
+  if (hoja.getMaxColumns() > n) hoja.deleteColumns(n + 1, hoja.getMaxColumns() - n);
+  hoja.getRange(1, 1, 1, n).setValues([COLUMNAS_HOJA])
+    .setFontWeight('bold').setFontColor('#1a1a19').setBackground('#f1f1ee').setVerticalAlignment('middle');
+  hoja.setRowHeight(1, 34);
+  hoja.setFrozenRows(1);
+  hoja.getRange('A2:A').setNumberFormat('dd/mm/yyyy');
+  hoja.getRange('M2:M').setNumberFormat('dd/mm/yyyy');
+  hoja.getRange('F2:F').setNumberFormat('#,##0.00 "€"');
+  hoja.getRange('H2:J').setNumberFormat('#,##0.00 "€"');
+  hoja.getRange('B2:B').setNumberFormat('@');
+  hoja.getRange('D2:D').setNumberFormat('@');
+  hoja.getRange('F1:J1').setHorizontalAlignment('right');
+  hoja.getRange('G2:G').setHorizontalAlignment('right');
+  [96, 120, 220, 110, 190, 116, 76, 96, 116, 110, 84, 320, 90, 70].forEach((w, i) => hoja.setColumnWidth(i + 1, w));
+  hoja.getRange('L2:L').setWrap(true);
+  hoja.hideColumns(COL_CLAVE);
+  const estado = hoja.getRange('K2:K');
+  hoja.setConditionalFormatRules([
+    ['Correcta', '#e3f6ea', '#1f8a5b'], ['Revisar', '#fdf3d0', '#8a6400'], ['Error', '#fcebe8', '#b8301f']
+  ].map(r => SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(r[0])
+    .setBackground(r[1]).setFontColor(r[2]).setRanges([estado]).build()));
+  // Aspecto: letra Inter, filas con aire, solo líneas horizontales finas (como la tabla del panel).
+  const todo = hoja.getRange(1, 1, hoja.getMaxRows(), n);
+  todo.setFontFamily('Inter').setFontSize(10).setVerticalAlignment('middle').setFontColor('#1a1a19');
+  hoja.getRange(1, 1, 1, n).setFontColor('#5f5f5a');
+  hoja.setRowHeights(2, hoja.getMaxRows() - 1, 30);
+  hoja.setHiddenGridlines(true);
+  todo.setBorder(null, null, true, null, null, true, '#e7e7e3', SpreadsheetApp.BorderStyle.SOLID);
+  hoja.getRange('J2:J').setFontWeight('bold');
+  hoja.getRange('C2:C').setFontWeight('bold');
+  hoja.getRange('N2:N').setHorizontalAlignment('center');
+  hoja.getRange('A:N').createFilter();
+
+  // Segunda pestaña: lo de cada cliente sumado (se actualiza sola).
+  const porCliente = libro.insertSheet('Por cliente');
+  porCliente.getRange('A1').setFormula('=QUERY(Facturas!A:N, "select E, count(B), sum(F), sum(H), sum(I), sum(J) ' +
+    'where E is not null and E <> \'\' group by E order by sum(J) desc label E \'Cliente\', count(B) \'Facturas\', ' +
+    'sum(F) \'Base imponible\', sum(H) \'Cuota IVA\', sum(I) \'Retención IRPF\', sum(J) \'Total\'", 1)');
+  if (porCliente.getMaxColumns() > 6) porCliente.deleteColumns(7, porCliente.getMaxColumns() - 6);
+  porCliente.getRange(1, 1, porCliente.getMaxRows(), 6).setFontFamily('Inter').setFontSize(10).setVerticalAlignment('middle')
+    .setBorder(null, null, true, null, null, true, '#e7e7e3', SpreadsheetApp.BorderStyle.SOLID);
+  porCliente.getRange('A1:F1').setFontWeight('bold').setFontColor('#5f5f5a').setBackground('#f1f1ee');
+  porCliente.getRange('C2:F').setNumberFormat('#,##0.00 "€"');
+  porCliente.getRange('B1:F1').setHorizontalAlignment('right');
+  porCliente.setRowHeight(1, 34);
+  porCliente.setRowHeights(2, porCliente.getMaxRows() - 1, 30);
+  porCliente.setFrozenRows(1);
+  porCliente.setHiddenGridlines(true);
+  [220, 90, 130, 110, 130, 120].forEach((w, i) => porCliente.setColumnWidth(i + 1, w));
+
+  props.setProperty('hoja_facturas', libro.getId());
+  return hoja;
+}
+
+/** Para empezar con una hoja vacía (por ejemplo, después de volver a cargar la demo): la próxima vez se crea otra. */
+function empezarHojaDeCero() {
+  PropertiesService.getUserProperties().deleteProperty('hoja_facturas');
+  Logger.log('Listo. La próxima vez que abras el panel se crea una hoja nueva. La anterior sigue en tu Drive: bórrala si no la quieres.');
+}
+
+function filaHoja_(x) {
+  const f = x.factura || {};
+  const num = v => (typeof v === 'number' && isFinite(v) ? v : '');
+  const fecha = s => {
+    const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : '';
+  };
+  const tipos = (f.tipos_iva || []).map(t => String(t).replace('.', ',') + ' %').join(' y ');
+  const estado = { correcta: 'Correcta', error: 'Error', revisar: 'Revisar' }[f.estado] || 'Revisar';
+  const clave = String(x.hilo || x.id || '') + '|' + String(f.numero || f.emisor || '');
+  return [fecha(f.fecha_factura), f.numero || '', f.emisor || '', f.nif || '', x.cliente || '',
+    num(f.base), tipos, num(f.cuota_iva), num(f.retencion), num(typeof f.total === 'number' ? f.total : f.total_factura),
+    estado, (f.motivos || []).join(' '), fecha(x.dia), '', clave];
+}
+
+function comparable_(v) {
+  if (v instanceof Date) return 'd' + v.getFullYear() + '-' + v.getMonth() + '-' + v.getDate();
+  return String(v === null || v === undefined ? '' : v);
 }
 
 // ---------------------------------------------------------------- los correos
@@ -791,6 +958,7 @@ var ICONOS = {
   correos:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
   facturas:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/>',
   calendario:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  hoja:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
   externo:'<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
   enviar:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
   check:'<path d="M20 6 9 17l-5-5"/>',
@@ -853,7 +1021,7 @@ function saludo(){ var h = new Date().getHours(); return h >= 6 && h < 14 ? 'Bue
 // ---- Estado
 var vista = 'resumen', actual = null, original = '';
 var convs = null, dias = {}, fechas = [], dia = null, hechos = {};
-var verTodos = false, busqueda = '', filtroFact = 'todas', marca = { nombre:'', logo:'' };
+var verTodos = false, busqueda = '', filtroFact = 'todas', marca = { nombre:'', logo:'' }, hojaUrl = '';
 var porId = {};
 function porContestar(c){ return c.borrador || (!c.ultimoMio && !c.sospechoso); }
 function pendientes(){ return (convs || []).filter(porContestar).length; }
@@ -1096,7 +1264,8 @@ function pintarFacturas(){
   var todas = d ? d.correos.filter(function(c){ return c.tipo === 'Factura'; }) : [];
   cuerpo.append(el('div',{class:'cabeza'}, el('div',{},
     el('h1',{}, 'Facturas'),
-    el('div',{class:'sub'}, d && !d.provisional ? fechaLarga(dia) + ' · revisadas con un programa que hace las cuentas' : 'Aparecen cuando el agente deja el resumen de su pasada.'))));
+    el('div',{class:'sub'}, d && !d.provisional ? fechaLarga(dia) + ' · revisadas con un programa que hace las cuentas' : 'Aparecen cuando el agente deja el resumen de su pasada.')),
+    hojaUrl ? el('div',{class:'acciones-cab'}, el('a',{class:'boton', href:hojaUrl, target:'_blank', rel:'noopener', title:'Todas las facturas en una hoja de Google, lista para contabilidad'}, ico('hoja'), 'Abrir hoja de facturas')) : null));
   var est = function(c){ return (c.factura && c.factura.estado) || 'revisar'; };
   var segm = el('div',{class:'segm'});
   [['todas','Todas'],['error','Error','Con '],['revisar','Revisar','Por '],['correcta','Correctas']].forEach(function(x){
@@ -1299,10 +1468,24 @@ function cargar(){
     dias = r.dias || {}; fechas = Object.keys(dias).sort().reverse(); dia = fechas[0] || null;
     hechos = {}; (r.hechos || []).forEach(function(id){ hechos[id] = true; });
     if (r.marca) marca = r.marca;
+    hojaUrl = r.hoja || '';
     pintarMarco();
     if (vista === 'resumen') pintarResumen(); else if (vista === 'facturas') pintarFacturas(); else if (actual && $('texto') == null) abrirHilo(actual);
     else if (actual && revisionDe(actual) && !document.querySelector('.revision')) abrirHilo(actual);
+    pasarAHoja();
   }).catch(function(){ dias = {}; fechas = []; pintarMarco(); if (vista === 'resumen') pintarResumen(); });
+}
+// Las facturas de los resúmenes van también a la hoja de Google (solo las nuevas o las que han cambiado).
+function pasarAHoja(){
+  var lista = [];
+  Object.keys(dias).forEach(function(k){ (dias[k].provisional ? [] : dias[k].correos).forEach(function(c){
+    if (c.factura) lista.push({ id:c.id, hilo:c.hilo, dia:k, cliente:c.cliente, factura:c.factura });
+  }); });
+  if (!lista.length) return;
+  llamar('sincronizarHoja', lista).then(function(r){
+    var antes = hojaUrl; hojaUrl = r.url || hojaUrl;
+    if (!antes && hojaUrl && vista === 'facturas') pintarFacturas();
+  }).catch(function(){ /* sin permiso para hojas todavía: el panel sigue igual */ });
 }
 $('buscar').addEventListener('input', function(e){ busqueda = e.target.value; pintarLista(); });
 

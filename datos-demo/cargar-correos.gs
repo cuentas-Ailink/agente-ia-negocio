@@ -11,7 +11,7 @@
  *    Al terminar, el registro dice cuántos correos ha cargado.
  *
  * Para repetir la demo desde cero: ejecuta «limpiarDemo» (manda a la papelera los correos de demo,
- * borra sus borradores, las respuestas enviadas desde el chat con sus avisos de «dirección no encontrada»
+ * borra sus borradores y los resúmenes del agente, las respuestas enviadas desde el chat con sus avisos de «dirección no encontrada»
  * y quita las etiquetas «Agente/…») y después otra vez «cargarCorreos».
  */
 
@@ -50,10 +50,14 @@ function limpiarDemo() {
   GmailApp.search(consulta).forEach(h => { ids.add(h.getId()); h.moveToTrash(); hilos++; });
   // Avisos de «dirección no encontrada» si se envió alguna respuesta de prueba (las direcciones .demo no existen)
   GmailApp.search('from:mailer-daemon ".demo"').forEach(h => { h.moveToTrash(); hilos++; });
-  GmailApp.getDrafts().forEach(d => { if (ids.has(d.getMessage().getThread().getId())) d.deleteDraft(); });
+  GmailApp.getDrafts().forEach(d => {
+    const m = d.getMessage();
+    // Los del agente en esos hilos y sus resúmenes internos («Agente · resumen …»), para que el panel empiece limpio
+    if (ids.has(m.getThread().getId()) || /^Agente · resumen /.test(m.getSubject())) d.deleteDraft();
+  });
   // Etiquetas del agente
   GmailApp.getUserLabels().forEach(l => { if (l.getName().indexOf('Agente') === 0) l.deleteLabel(); });
-  Logger.log('A la papelera: ' + hilos + ' hilos de demo. Borradores y etiquetas «Agente/…» quitados.');
+  Logger.log('A la papelera: ' + hilos + ' hilos de demo. Borradores, resúmenes del agente y etiquetas «Agente/…» quitados.');
 }
 
 // ---------------------------------------------------------------- ayudas
