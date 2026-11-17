@@ -2,3 +2,4 @@ salida/*
 !salida/.gitkeep
 .DS_Store
 __pycache__/
+negocio/chat.txt

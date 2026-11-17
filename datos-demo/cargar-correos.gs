@@ -11,7 +11,8 @@
  *    Al terminar, el registro dice cuántos correos ha cargado.
  *
  * Para repetir la demo desde cero: ejecuta «limpiarDemo» (manda a la papelera los correos de demo,
- * borra sus borradores y quita las etiquetas «Agente/…») y después otra vez «cargarCorreos».
+ * borra sus borradores, las respuestas enviadas desde el chat con sus avisos de «dirección no encontrada»
+ * y quita las etiquetas «Agente/…») y después otra vez «cargarCorreos».
  */
 
 const CARPETA = 'datos-demo';
@@ -47,6 +48,8 @@ function limpiarDemo() {
   // Borradores del agente en esos hilos
   const ids = new Set();
   GmailApp.search(consulta).forEach(h => { ids.add(h.getId()); h.moveToTrash(); hilos++; });
+  // Avisos de «dirección no encontrada» si se envió alguna respuesta de prueba (las direcciones .demo no existen)
+  GmailApp.search('from:mailer-daemon ".demo"').forEach(h => { h.moveToTrash(); hilos++; });
   GmailApp.getDrafts().forEach(d => { if (ids.has(d.getMessage().getThread().getId())) d.deleteDraft(); });
   // Etiquetas del agente
   GmailApp.getUserLabels().forEach(l => { if (l.getName().indexOf('Agente') === 0) l.deleteLabel(); });

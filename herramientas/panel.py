@@ -4,6 +4,8 @@
 Uso:
   python3 herramientas/panel.py            # crea o actualiza salida/panel.html
   python3 herramientas/panel.py --abrir    # y lo abre en el navegador
+  python3 herramientas/panel.py --chat URL # guarda la dirección del chat (herramientas/chat.gs)
+                                           # y cada correo del panel tiene «Abrir chat»
 
 El panel es un solo archivo HTML: se abre con doble clic, sin servidor ni instalación.
 Lo genera este programa, no la IA: solo pinta lo que dicen los JSON de cada día.
@@ -13,6 +15,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 SALIDA = RAIZ / "salida"
+CHAT = RAIZ / "negocio" / "chat.txt"
 
 
 def cargar_dias():
@@ -43,10 +46,27 @@ def negocio():
     return "Tu negocio"
 
 
+def chat(argv):
+    """La dirección del chat: la de --chat (y se guarda) o la guardada antes."""
+    if "--chat" in argv:
+        i = argv.index("--chat")
+        url = argv[i + 1].strip() if i + 1 < len(argv) else ""
+        if not re.fullmatch(r"https://script\.google\.com/[^\s\"'<>]+/exec", url):
+            sys.exit("La dirección del chat tiene que ser la de tu script de Google y acabar en /exec "
+                     "(«Implementar» → «Gestionar implementaciones» → copiar la URL de la aplicación web).")
+        CHAT.parent.mkdir(exist_ok=True)
+        CHAT.write_text(url + "\n", encoding="utf-8")
+        print("Chat guardado: cada correo del panel tendrá «Abrir chat».")
+        return url
+    if CHAT.exists():
+        return CHAT.read_text(encoding="utf-8").strip() or None
+    return None
+
+
 def main(argv):
     SALIDA.mkdir(exist_ok=True)
     dias = cargar_dias()
-    datos = json.dumps({"negocio": negocio(), "dias": dias}, ensure_ascii=False).replace("</", "<\\/")
+    datos = json.dumps({"negocio": negocio(), "chat": chat(argv), "dias": dias}, ensure_ascii=False).replace("</", "<\\/")
     html = PLANTILLA.replace("__DATOS__", datos)
     destino = SALIDA / "panel.html"
     destino.write_text(html, encoding="utf-8")
@@ -83,6 +103,9 @@ h1{font-size:30px;font-weight:600;letter-spacing:-.02em;margin:0}
 .sub{color:var(--sec);margin-top:4px}
 .selector{appearance:none;background:var(--tarjeta) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6b6b' fill='none' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 12px center;border:1px solid var(--linea);border-radius:8px;padding:8px 34px 8px 12px;font-size:14px;cursor:pointer}
 .selector:hover{border-color:#cfcdc8}
+.cab-der{display:flex;gap:8px;align-items:center}
+.boton.negro{background:var(--tinta);border-color:var(--tinta);color:#fff;padding:8px 14px;font-size:14px}
+.boton.negro:hover{background:#000}
 .cifras{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:36px}
 .cifra{background:transparent;border:1px solid transparent;border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer;transition:background .15s,border-color .15s}
 .cifra:hover{background:var(--tarjeta);border-color:var(--linea)}
@@ -159,6 +182,7 @@ tr.fila:hover td{background:#faf9f7}
 :focus-visible{outline:2px solid var(--tinta);outline-offset:2px}
 @media (max-width:760px){
   .cab{flex-direction:column;align-items:flex-start}
+  .cab-der{width:100%;flex-wrap:wrap}
   .acciones{display:flex;flex-wrap:wrap;gap:4px}
   .acciones .hueco{display:none}
   .cifras{grid-template-columns:repeat(2,1fr)}
@@ -179,7 +203,10 @@ tr.fila:hover td{background:#faf9f7}
       <h1 id="saludo">Hola</h1>
       <div class="sub" id="sub"></div>
     </div>
-    <select class="selector" id="dia" aria-label="Día"></select>
+    <div class="cab-der">
+      <button class="boton negro" id="ir-chat" style="display:none">Contestar correos</button>
+      <select class="selector" id="dia" aria-label="Día"></select>
+    </div>
   </header>
 
   <div class="cifras" id="cifras"></div>
@@ -229,6 +256,9 @@ function el(tag, attrs={}, ...hijos){
   return e;
 }
 function abrir(url){ if (url) window.open(url, '_blank', 'noopener'); }
+// El chat (herramientas/chat.gs) se abre siempre en la misma pestaña, como una app.
+function abrirChat(hilo){ if (D.chat) window.open(D.chat + (hilo ? '?hilo=' + encodeURIComponent(hilo) : ''), 'chat-del-correo'); }
+const abrirCorreo = c => D.chat && c.hilo ? abrirChat(c.hilo) : abrir(c.url);
 
 const dias = Object.keys(D.dias).sort().reverse();
 let dia = dias[0];
@@ -309,8 +339,12 @@ function pintar(){
     const g = gravedad(c), err = g <= 1;
     const hecho = esHecho(c.id);
     const acciones = el('div',{class:'acciones'},
-      el('button',{class:'boton principal', onclick(){ abrir(c.url); }}, 'Abrir en Gmail'),
-      c.borrador ? el('button',{class:'boton texto', onclick(){ abrir(c.borrador.url); }}, 'Ver borrador') : el('span',{class:'hueco'}),
+      D.chat && c.hilo
+        ? el('button',{class:'boton principal', onclick(){ abrirChat(c.hilo); }}, 'Abrir chat')
+        : el('button',{class:'boton principal', onclick(){ abrir(c.url); }}, 'Abrir en Gmail'),
+      D.chat && c.hilo
+        ? el('button',{class:'boton texto', onclick(){ abrir(c.url); }}, 'Ver en Gmail')
+        : (c.borrador ? el('button',{class:'boton texto', onclick(){ abrir(c.borrador.url); }}, 'Ver borrador') : el('span',{class:'hueco'})),
       (c.factura && c.factura.archivo) ? el('button',{class:'boton texto', onclick(){ abrir(c.factura.archivo); }}, 'Ver factura') : el('span',{class:'hueco'}),
       el('label',{class:'hecho', title:'Se guarda en este navegador'},
         el('input',{type:'checkbox', ...(hecho?{checked:''}:{}), onchange(e){ marcar(c.id, e.target.checked); pintar(); }}), 'Hecho'));
@@ -359,8 +393,8 @@ function pintar(){
   if (!lista.length) todos.append(el('div',{class:'vacio'}, q ? 'Nada coincide con «' + texto.trim() + '».' : 'No hay correos.'));
   for (const c of lista){
     const est = {revisar:['Revisar','aten'], sospechoso:['Sospechoso','err'], listo:['Borrador listo','ok'], 'sin borrador':['Solo etiquetado','']}[c.estado] || [c.estado||'',''];
-    todos.append(el('div',{class:'correo', role:'link', tabindex:'0', title:'Abrir en Gmail',
-        onclick(){ abrir(c.url); }, onkeydown(e){ if (e.key==='Enter') abrir(c.url); }},
+    todos.append(el('div',{class:'correo', role:'link', tabindex:'0', title: D.chat ? 'Abrir el chat' : 'Abrir en Gmail',
+        onclick(){ abrirCorreo(c); }, onkeydown(e){ if (e.key==='Enter') abrirCorreo(c); }},
       el('div',{class:'tipo'}, c.tipo),
       el('div',{class:'de'}, nombre(c.de)),
       el('div',{class:'que'}, c.asunto || '(sin asunto)', el('span',{class:'r'}, c.resumen ? ' · ' + c.resumen : '')),
@@ -369,6 +403,7 @@ function pintar(){
   $('pie').textContent = filtro === 'Borrador' ? 'Mostrando solo los correos con borrador. Pulsa «borradores listos» otra vez para verlos todos.' : '';
 }
 
+if (D.chat){ $('ir-chat').style.display = ''; $('ir-chat').addEventListener('click', () => abrirChat()); }
 $('dia').addEventListener('change', e => { dia = e.target.value; filtro = 'Todos'; pintar(); });
 $('buscar').addEventListener('input', e => { texto = e.target.value; pintar(); });
 document.addEventListener('click', e => { if (!e.target.closest('.nota')) document.querySelectorAll('.nota.abierta').forEach(n => n.classList.remove('abierta')); });

@@ -8,11 +8,12 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 
 - **Ordena la bandeja.** Pone a cada correo una etiqueta «Agente/…» según su tipo (factura, consulta, presupuesto…). Los tipos los decides tú en `negocio/negocio.md`.
 - **Revisa facturas de verdad.** Lee cada factura y un pequeño programa comprueba base, IVA, retención, total y NIF. Si el total está mal sumado, te dice cuánto: «pone 2.815,10 €, debería ser 2.795,10 € (+20,00 €)». Las cuentas nunca las hace la IA.
-- **Deja respuestas en borrador**, en el mismo hilo, con el tono de tu negocio. **Nunca envía nada.**
+- **Deja respuestas en borrador**, en el mismo hilo, con el tono de tu negocio. **El agente nunca envía nada.**
 - **Reparte el trabajo entre subagentes** que trabajan a la vez: uno clasifica, otro revisa facturas y otro redacta.
 - **Aprende.** Si un cliente pide que le traten de usted, lo apunta en `memoria/MEMORIA.md` y lo aplica la próxima vez.
 - **Se protege.** Si un correo intenta darle órdenes («ignora tus instrucciones y reenvía…»), no obedece: lo marca como «Agente/Sospechoso».
 - **Te lo enseña en un panel.** Al acabar cada pasada se actualiza `salida/panel.html`: lo que necesita a una persona arriba, las facturas con su estado y todos los correos. Se abre con doble clic, sin instalar nada, y cada fila te lleva al correo, al borrador o a la factura.
+- **Contestas desde un chat.** Cada correo se lee como una conversación, con el borrador del agente ya escrito: lo cambias si quieres y pulsas «Enviar». Envías tú, con dos clics; el agente no puede. Es una página privada de tu propia cuenta de Google (`herramientas/chat.gs`): sin servidor y sin claves.
 - **Funciona solo** cada mañana con una tarea programada de la app de Claude.
 
 ## Cómo está hecho
@@ -30,12 +31,22 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 | `.claude/settings.json` | Bloquea enviar, responder, reenviar y borrar correos. |
 | `herramientas/revisar_factura.py` | Hace las cuentas de cada factura. |
 | `herramientas/panel.py` | Genera el panel (`salida/panel.html`) con los resúmenes de cada día. |
+| `herramientas/chat.gs` | El chat para revisar y enviar los borradores. Se instala una vez en tu cuenta de Google (las instrucciones están dentro). |
 | `herramientas/comprobar.py` | Comprueba que todo está bien montado. |
 | `salida/` | El resumen de cada día (`AAAA-MM-DD.json`), el panel y las facturas descargadas. |
 
 ## Instalarlo
 
 Sigue [INSTALAR.md](INSTALAR.md): descargar la carpeta, abrirla en la app de Claude, conectar Gmail y programar la tarea diaria.
+
+## Contestar desde el chat (opcional, 3 minutos)
+
+1. Con la cuenta de Gmail del negocio, abre [script.google.com](https://script.google.com) → «Nuevo proyecto» y pega `herramientas/chat.gs` entero.
+2. «Servicios» (+) → «Gmail API» → Añadir.
+3. «Implementar» → «Nueva implementación» → «Aplicación web». Ejecutar como **Yo**; quién tiene acceso: **Solo yo**. Acepta los permisos.
+4. Copia la URL que acaba en `/exec` y pégasela a Claude: «este es el chat: URL». Él ejecuta `python3 herramientas/panel.py --chat URL`.
+
+Desde entonces el panel tiene «Contestar correos» y, en cada correo, «Abrir chat». Solo tu cuenta puede abrir esa página.
 
 ## Adaptarlo a tu negocio
 
@@ -53,7 +64,7 @@ Te hará como mucho 5 preguntas, escribirá `negocio/negocio.md` y `negocio/clie
 
 ## Lo que no hace (todavía)
 
-- Enviar correos: siempre los deja en borrador, a propósito.
+- Enviar correos por su cuenta: siempre los deja en borrador, a propósito. Envía una persona desde el chat o desde Gmail.
 - Otros correos que no sean Gmail.
 - Leer facturas escaneadas muy borrosas o escritas a mano: las marca para revisar.
 - Contabilizar las facturas en un programa de contabilidad.
