@@ -15,6 +15,7 @@ Sigue estos pasos en orden. No te saltes el resumen final aunque no haya correos
 - Busca hilos en `in:inbox` quitando **cada** etiqueta del agente por su nombre, porque en Gmail `-label:agente` no quita las subetiquetas. Por ejemplo, con la tabla de la gestoría:
   `in:inbox -label:agente-factura -label:agente-consulta -label:agente-presupuesto -label:agente-otros -label:agente-revisar -label:agente-sospechoso`
   (Gmail escribe «Agente/Factura» como `agente-factura`.)
+- Pide 50 por página y **sigue pidiendo páginas** (`pageToken`) hasta que no quede ninguna: la búsqueda devuelve solo 20 si no lo dices, y un correo que no se lee hoy se queda sin contestar. Si hay más de 50 correos nuevos, procesa los 50 más antiguos y dilo en el resumen.
 - Antes de seguir, comprueba en la lista que ninguno tenga ya una etiqueta que empiece por «Agente/»; si alguno la tiene, descártalo.
 - Si no hay ninguno, salta al paso 6.
 
