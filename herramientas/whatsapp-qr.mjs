@@ -155,7 +155,7 @@ function crearConexionBaileys(qrcode) {
     let registro;
     try { registro = createRequire(path.join(CARPETA, 'package.json'))('pino')({ level: 'silent' }); } catch { registro = undefined; }
     const makeWASocket = baileys.default?.default ?? baileys.default ?? baileys.makeWASocket;
-    const { DisconnectReason, downloadMediaMessage, fetchLatestWaWebVersion, isLidUser, jidNormalizedUser, useMultiFileAuthState } = baileys;
+    const { DisconnectReason, downloadMediaMessage, fetchLatestBaileysVersion, fetchLatestWaWebVersion, isLidUser, jidNormalizedUser, useMultiFileAuthState } = baileys;
     const inicio = Math.floor(Date.now() / 1000) - 5;
     let sock = null, parando = false, paginaAbierta = false, version = null, ultimoCierre = '';
     const telDeJid = jid => (String(jid || '').match(/^(\d{6,15})(?::\d+)?@(s\.whatsapp\.net|c\.us)$/) || [])[1] || null;
@@ -181,13 +181,28 @@ function crearConexionBaileys(qrcode) {
       return null;
     }
 
+    // La versión de WhatsApp Web que se anuncia: la que sirve hoy web.whatsapp.com. La que trae Baileys
+    // se queda atrás y, con una vieja, el QR sale pero el móvil dice «Revisa tu conexión y vuelve a
+    // intentarlo». Si un reintento no llega a web.whatsapp.com, se sigue con la última buena.
+    async function versionAnunciada() {
+      const web = await fetchLatestWaWebVersion?.().catch(() => null);
+      if (web?.isLatest && Array.isArray(web.version)) {
+        if (version?.join('.') !== web.version.join('.')) console.log(`WhatsApp Web ${web.version.join('.')}`);
+        version = web.version;
+      }
+      if (version) return version;
+      const repo = await fetchLatestBaileysVersion?.().catch(() => null);
+      if (repo?.isLatest && Array.isArray(repo.version)) return repo.version;
+      console.log('No he podido saber la versión de WhatsApp Web: si el móvil no vincula, revisa la conexión a internet.');
+      return undefined;
+    }
+
     async function conectar() {
       if (parando) return;
       if (!sock) console.log('Conectando con WhatsApp…');
       const { state, saveCreds } = await useMultiFileAuthState(SESION);
-      const web = await fetchLatestWaWebVersion?.().catch(() => null);
-      if (web?.isLatest && Array.isArray(web.version)) version = web.version;
-      sock = makeWASocket({ ...(version ? { version } : {}), auth: state, ...(registro ? { logger: registro } : {}),
+      const anunciada = await versionAnunciada();
+      sock = makeWASocket({ ...(anunciada ? { version: anunciada } : {}), auth: state, ...(registro ? { logger: registro } : {}),
         syncFullHistory: false, markOnlineOnConnect: false });
       sock.ev.on('creds.update', saveCreds);
       sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
