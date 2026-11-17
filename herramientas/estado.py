@@ -52,13 +52,18 @@ def chat():
     return ("hecho", "Instalado: el panel tiene «Abrir chat».") if url else ("falta", "Opcional, 3 minutos.")
 
 
+def rutina():
+    hora = (leer("negocio/rutina.txt") or "").strip()
+    return ("hecho", f"Cada día a las {hora}, con la app de Claude abierta.") if hora else ("falta", "Se crea en la app de Claude (o te la creo yo).")
+
+
 def main():
     pasos = [
         ("Tu negocio", *negocio()),
         ("Gmail conectado", "claude", "Lo compruebo yo desde la app."),
         ("Primera pasada", *pasadas()),
         ("Chat para contestar", *chat()),
-        ("Cada mañana, solo", "claude", "La tarea programada se crea en la app de Claude."),
+        ("Cada mañana, solo", *rutina()),
     ]
     marca = {"hecho": "\033[32mHecho\033[0m  ", "ejemplo": "\033[33mEjemplo\033[0m", "falta": "\033[33mFalta\033[0m  ", "claude": "·      "}
     for i, (nombre, estado, detalle) in enumerate(pasos, 1):

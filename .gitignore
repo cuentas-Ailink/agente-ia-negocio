@@ -3,3 +3,4 @@ salida/*
 .DS_Store
 __pycache__/
 negocio/chat.txt
+negocio/rutina.txt

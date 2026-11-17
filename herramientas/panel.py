@@ -335,7 +335,7 @@ function pintar(){
   const pendientes = pers.filter(c => !esHecho(c.id)).length;
   $('n-persona').textContent = pers.length ? String(pendientes) : '';
   const caja = $('persona'); caja.innerHTML = '';
-  if (!pers.length) caja.append(el('div',{class:'vacio'}, 'Nada urgente. Lo demás tiene su borrador listo para revisar y enviar.'));
+  if (!pers.length) caja.append(el('div',{class:'vacio'}, borradores.length ? 'Nada urgente. Lo demás tiene su borrador listo para revisar y enviar.' : 'Nada urgente.'));
   for (const c of pers){
     const g = gravedad(c), err = g <= 1;
     const hecho = esHecho(c.id);

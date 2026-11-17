@@ -55,7 +55,11 @@ Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y `python3
 
 ## 5. Cada mañana, solo
 
-Dile cómo crear la tarea programada en la app de Claude, en esta carpeta, cada día a la hora que quiera (por ejemplo, las 8:00), con el texto «Haz la pasada diaria». Recuérdale que el ordenador tiene que estar encendido y con la app abierta a esa hora.
+- Pregunta a qué hora la quiere (propón las 8:00).
+- Si tienes una herramienta para crear tareas programadas, créala tú: en esta carpeta, cada día a esa hora, con el texto «Haz la pasada diaria». Créala **una sola vez**: si da error, mira primero si se ha creado antes de volver a intentarlo, para no dejar dos tareas.
+- Si no la tienes, dile dónde crearla en la app de Claude, con ese mismo texto.
+- Cuando esté creada, escribe la hora en `negocio/rutina.txt` (por ejemplo `08:00`) para que el estado la marque como hecha.
+- Recuérdale que el ordenador tiene que estar encendido y con la app de Claude abierta a esa hora.
 
 ## Al terminar
 
