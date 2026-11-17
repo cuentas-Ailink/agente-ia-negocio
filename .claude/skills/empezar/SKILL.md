@@ -44,7 +44,7 @@ Explica para qué sirve: «Es tu panel en una página privada de Google: ves el 
 Si lo quiere instalar, escribe estos pasos **como lista numerada, uno por línea, con los nombres de los botones entre comillas**. No los resumas en un párrafo: la persona los va siguiendo mientras mira la pantalla.
 
 1. Con la cuenta de Gmail del negocio, entra en script.google.com → «Nuevo proyecto» y llámalo «Panel del correo».
-2. Borra lo que haya y pega el contenido de `herramientas/panel.gs`. Para que no tenga que abrir el archivo, ofrécete a copiarlo al portapapeles con `pbcopy < herramientas/panel.gs` (en Mac).
+2. Borra lo que haya y pega el contenido de `herramientas/panel.gs`. Para que no tenga que abrir el archivo, ofrécete a copiarlo al portapapeles con `LC_ALL=en_US.UTF-8 pbcopy < herramientas/panel.gs` (en Mac; sin `LC_ALL` el Mac estropea los acentos y el panel se queda en «Cargando»). Pídele que compruebe que las tildes se ven bien al pegar.
 3. A la izquierda, «Servicios» (+) → «Gmail API» → «Añadir».
 4. «Implementar» → «Nueva implementación» → engranaje → «Aplicación web». Ejecutar como «Yo»; quién tiene acceso «Solo yo». Al aceptar los permisos, Google avisa de que la app no está verificada: es su propio script, «Configuración avanzada» → «Ir a Panel del correo».
 5. «Pégame aquí la URL que acaba en /exec».
