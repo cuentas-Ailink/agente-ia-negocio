@@ -15,7 +15,7 @@ La persona no sabe programar y no tiene que abrir ningún archivo. Tú haces el 
 
 ## 0. Dónde estamos
 
-Ejecuta `python3 herramientas/estado.py`. Saluda en una línea («Te dejo el correo de tu negocio ordenado cada mañana: facturas revisadas y respuestas escritas para que solo tengas que enviarlas») y enseña los 5 pasos con su estado, como una lista corta. Empieza por el primero que no esté hecho.
+Ejecuta `python3 herramientas/estado.py`. Saluda en una línea («Te dejo el correo de tu negocio ordenado cada mañana: facturas revisadas y respuestas escritas para que solo tengas que enviarlas») y enseña siempre los 5 pasos con su estado, como una lista corta de 5 líneas (así la persona ve desde el principio todo lo que falta). Empieza por el primero que no esté hecho.
 
 Si «estado.py» dice que hay algo mal montado, ejecuta `python3 herramientas/comprobar.py`, arréglalo tú y sigue.
 
