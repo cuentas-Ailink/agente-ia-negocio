@@ -58,6 +58,9 @@ def para_la_hoja(c, copias):
     irpf, retencion = _num(d.get("tipo_irpf")), _num(d.get("retencion"))
     if retencion is None and lineas and all(x is not None for x in bases):
         retencion = round(sum(bases) * (irpf or 0) / 100, 2)
+    total = _num(d.get("total")) if d.get("total") not in (None, "") else _num(f.get("total_factura"))
+    if not lineas and not total:
+        total = None  # no se ha podido leer: mejor vacío que un 0,00 € que parece un dato
     return {
         "fecha_factura": d.get("fecha") or "",
         "nif": d.get("nif_emisor") or "",
@@ -66,8 +69,17 @@ def para_la_hoja(c, copias):
         "cuota_iva": cuota,
         "tipo_irpf": irpf,
         "retencion": retencion,
-        "total": _num(d.get("total")) if d.get("total") not in (None, "") else _num(f.get("total_factura")),
+        "total": total,
     }
+
+
+def sin_ceros(f):
+    """Una factura que no se ha podido leer no tiene importes: sin 0,00 € en el panel ni en la hoja."""
+    if f.get("total") is None and not f.get("base"):
+        for k in ("total_factura", "total_correcto"):
+            if not f.get(k):
+                f[k] = None
+    return f
 
 
 def main(argv):
@@ -91,8 +103,8 @@ def main(argv):
             "id": c.get("id", ""), "hilo": c.get("hilo", ""), "de": c.get("de", ""), "cliente": c.get("cliente", ""),
             "asunto": c.get("asunto", ""), "tipo": c.get("tipo", ""), "estado": c.get("estado", ""),
             "resumen": c.get("resumen", ""), "borrador": bool(c.get("borrador")),
-            "factura": ({**{k: v for k, v in c["factura"].items() if k not in ("archivo", "datos")},
-                         **para_la_hoja(c, copias)} if c.get("factura") else None),
+            "factura": (sin_ceros({**{k: v for k, v in c["factura"].items() if k not in ("archivo", "datos")},
+                                   **para_la_hoja(c, copias)}) if c.get("factura") else None),
         } for c in datos.get("correos", [])],
     }
     destino = SALIDA / "resumen-gmail.json"

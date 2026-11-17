@@ -31,7 +31,7 @@
  * - Lo que marcas como «Hecho» se guarda en tu cuenta, así que se ve igual en el móvil y en el ordenador.
  * - Las facturas revisadas van solas a la hoja de Google «Facturas revisadas» (en tu Drive), con fecha, NIF,
  *   base, IVA, retención, total y estado, lista para pasarla a contabilidad (Archivo → Descargar → CSV o Excel).
- *   Tiene una pestaña «Por cliente» con las sumas. Se rellena cada vez que abres el panel, sin repetir facturas.
+ *   Tiene una pestaña «Por cliente» con las sumas de cada cliente. Se rellena cada vez que abres el panel, sin repetir facturas.
  *   La primera vez, elige la función «prepararHoja» y pulsa «Ejecutar» (pide permiso para crear la hoja).
  * - El nombre y el logo del negocio se cambian en el propio panel: pulsa el nombre, arriba a la izquierda.
  */
@@ -183,10 +183,14 @@ function sincronizarHoja(lista) {
   if ((nuevas.length || cambios) && total > 1) {
     hoja.getRange(2, 1, total, COL_CLAVE).sort([{ column: 13, ascending: false }, { column: 1, ascending: false }]);
   }
+  if (nuevas.length || cambios || !hoja.getParent().getSheetByName('Por cliente')) {
+    if (!hoja.getParent().getSheetByName('Por cliente')) darFormato_(hoja.getParent()); else sumarPorCliente_(hoja.getParent());
+  }
   return { url: hoja.getParent().getUrl(), nuevas: nuevas.length, cambiadas: cambios, total: total };
 }
 
-/** Ejecútala una vez desde el editor: crea la hoja con las facturas que ya hay y acepta el permiso nuevo. */
+/** Ejecútala una vez desde el editor: crea la hoja con las facturas que ya hay y acepta el permiso nuevo.
+ *  Si la vuelves a ejecutar, pone al día las facturas y el aspecto de la hoja sin borrar nada. */
 function prepararHoja() {
   const r = datosResumenes();
   const lista = [];
@@ -194,6 +198,7 @@ function prepararHoja() {
     if (c.factura) lista.push({ id: c.id, hilo: c.hilo, dia: k, cliente: c.cliente, factura: c.factura });
   }));
   const s = sincronizarHoja(lista);
+  darFormato_(SpreadsheetApp.openById(PropertiesService.getUserProperties().getProperty('hoja_facturas')));
   Logger.log('Hoja de facturas (' + s.total + ' facturas): ' + s.url);
   return s.url;
 }
@@ -219,59 +224,98 @@ function hojaFacturas_() {
   libro.setSpreadsheetTimeZone(Session.getScriptTimeZone());
   const hoja = libro.getSheets()[0];
   hoja.setName('Facturas');
+  hoja.getRange(1, 1, 1, COLUMNAS_HOJA.length).setValues([COLUMNAS_HOJA]);
+  darFormato_(libro);
+  props.setProperty('hoja_facturas', libro.getId());
+  return hoja;
+}
+
+/** El aspecto de la hoja. Se puede volver a aplicar sin perder nada (lo hace «prepararHoja»). */
+function darFormato_(libro) {
+  const hoja = libro.getSheetByName('Facturas') || libro.getSheets()[0];
   const n = COLUMNAS_HOJA.length;
   if (hoja.getMaxColumns() > n) hoja.deleteColumns(n + 1, hoja.getMaxColumns() - n);
-  hoja.getRange(1, 1, 1, n).setValues([COLUMNAS_HOJA])
-    .setFontWeight('bold').setFontColor('#1a1a19').setBackground('#f1f1ee').setVerticalAlignment('middle');
-  hoja.setRowHeight(1, 34);
+  const filas = hoja.getMaxRows();
+  // Letra Inter, filas con aire y solo líneas horizontales finas, como la tabla del panel.
+  const todo = hoja.getRange(1, 1, filas, n);
+  todo.setFontFamily('Inter').setFontSize(10).setVerticalAlignment('middle').setFontColor('#1a1a19')
+    .setBorder(null, null, true, null, null, true, '#e7e7e3', SpreadsheetApp.BorderStyle.SOLID);
+  hoja.getRange(1, 1, 1, n).setFontWeight('bold').setFontColor('#5f5f5a').setBackground('#f1f1ee').setWrap(false);
+  hoja.setRowHeight(1, 36);
+  if (filas > 1) hoja.setRowHeights(2, filas - 1, 30);
   hoja.setFrozenRows(1);
+  hoja.setHiddenGridlines(true);
   hoja.getRange('A2:A').setNumberFormat('dd/mm/yyyy');
   hoja.getRange('M2:M').setNumberFormat('dd/mm/yyyy');
   hoja.getRange('F2:F').setNumberFormat('#,##0.00 "€"');
   hoja.getRange('H2:J').setNumberFormat('#,##0.00 "€"');
   hoja.getRange('B2:B').setNumberFormat('@');
   hoja.getRange('D2:D').setNumberFormat('@');
-  hoja.getRange('F1:J1').setHorizontalAlignment('right');
-  hoja.getRange('G2:G').setHorizontalAlignment('right');
-  [96, 120, 220, 110, 190, 116, 76, 96, 116, 110, 84, 320, 90, 70].forEach((w, i) => hoja.setColumnWidth(i + 1, w));
+  hoja.getRange('C2:C').setFontWeight('bold');
+  hoja.getRange('J2:J').setFontWeight('bold');
+  hoja.getRange('F1:J').setHorizontalAlignment('right');
+  hoja.getRange('N2:N').setHorizontalAlignment('center');
+  hoja.getRange('C2:C').setWrap(true);
   hoja.getRange('L2:L').setWrap(true);
+  // Anchos pensados para que se lea cada cabecera entera, con el botón del filtro.
+  [112, 132, 250, 124, 210, 140, 92, 112, 140, 124, 100, 330, 108, 84].forEach((w, i) => hoja.setColumnWidth(i + 1, w));
   hoja.hideColumns(COL_CLAVE);
   const estado = hoja.getRange('K2:K');
   hoja.setConditionalFormatRules([
     ['Correcta', '#e3f6ea', '#1f8a5b'], ['Revisar', '#fdf3d0', '#8a6400'], ['Error', '#fcebe8', '#b8301f']
   ].map(r => SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(r[0])
-    .setBackground(r[1]).setFontColor(r[2]).setRanges([estado]).build()));
-  // Aspecto: letra Inter, filas con aire, solo líneas horizontales finas (como la tabla del panel).
-  const todo = hoja.getRange(1, 1, hoja.getMaxRows(), n);
-  todo.setFontFamily('Inter').setFontSize(10).setVerticalAlignment('middle').setFontColor('#1a1a19');
-  hoja.getRange(1, 1, 1, n).setFontColor('#5f5f5a');
-  hoja.setRowHeights(2, hoja.getMaxRows() - 1, 30);
-  hoja.setHiddenGridlines(true);
-  todo.setBorder(null, null, true, null, null, true, '#e7e7e3', SpreadsheetApp.BorderStyle.SOLID);
-  hoja.getRange('J2:J').setFontWeight('bold');
-  hoja.getRange('C2:C').setFontWeight('bold');
-  hoja.getRange('N2:N').setHorizontalAlignment('center');
+    .setBackground(r[1]).setFontColor(r[2]).setBold(true).setRanges([estado]).build()));
+  if (hoja.getFilter()) hoja.getFilter().remove();
   hoja.getRange('A:N').createFilter();
 
   // Segunda pestaña: lo de cada cliente sumado (se actualiza sola).
-  const porCliente = libro.insertSheet('Por cliente');
-  porCliente.getRange('A1').setFormula('=QUERY(Facturas!A:N, "select E, count(B), sum(F), sum(H), sum(I), sum(J) ' +
-    'where E is not null and E <> \'\' group by E order by sum(J) desc label E \'Cliente\', count(B) \'Facturas\', ' +
-    'sum(F) \'Base imponible\', sum(H) \'Cuota IVA\', sum(I) \'Retención IRPF\', sum(J) \'Total\'", 1)');
-  if (porCliente.getMaxColumns() > 6) porCliente.deleteColumns(7, porCliente.getMaxColumns() - 6);
-  porCliente.getRange(1, 1, porCliente.getMaxRows(), 6).setFontFamily('Inter').setFontSize(10).setVerticalAlignment('middle')
+  const porCliente = libro.getSheetByName('Por cliente') || libro.insertSheet('Por cliente');
+  if (porCliente.getMaxColumns() > 7) porCliente.deleteColumns(8, porCliente.getMaxColumns() - 7);
+  porCliente.getRange(1, 1, 1, 7).setValues([COLUMNAS_CLIENTE]);
+  const fc = porCliente.getMaxRows();
+  porCliente.getRange(1, 1, fc, 7).setFontFamily('Inter').setFontSize(10).setVerticalAlignment('middle').setFontColor('#1a1a19')
     .setBorder(null, null, true, null, null, true, '#e7e7e3', SpreadsheetApp.BorderStyle.SOLID);
-  porCliente.getRange('A1:F1').setFontWeight('bold').setFontColor('#5f5f5a').setBackground('#f1f1ee');
-  porCliente.getRange('C2:F').setNumberFormat('#,##0.00 "€"');
-  porCliente.getRange('B1:F1').setHorizontalAlignment('right');
-  porCliente.setRowHeight(1, 34);
-  porCliente.setRowHeights(2, porCliente.getMaxRows() - 1, 30);
+  porCliente.getRange('A1:G1').setFontWeight('bold').setFontColor('#5f5f5a').setBackground('#f1f1ee');
+  porCliente.getRange('A2:A').setFontWeight('bold');
+  porCliente.getRange('D2:G').setNumberFormat('#,##0.00 "€"');
+  porCliente.getRange('B2:C').setNumberFormat('0');
+  porCliente.getRange('G2:G').setFontWeight('bold');
+  porCliente.getRange('B1:G').setHorizontalAlignment('right');
+  porCliente.setRowHeight(1, 36);
+  if (fc > 1) porCliente.setRowHeights(2, fc - 1, 30);
   porCliente.setFrozenRows(1);
   porCliente.setHiddenGridlines(true);
-  [220, 90, 130, 110, 130, 120].forEach((w, i) => porCliente.setColumnWidth(i + 1, w));
+  [250, 96, 110, 140, 120, 140, 130].forEach((w, i) => porCliente.setColumnWidth(i + 1, w));
+  sumarPorCliente_(libro);
+}
 
-  props.setProperty('hoja_facturas', libro.getId());
-  return hoja;
+const COLUMNAS_CLIENTE = ['Cliente', 'Facturas', 'Por revisar', 'Base imponible', 'Cuota IVA', 'Retención IRPF', 'Total'];
+
+/** La pestaña «Por cliente»: las sumas las hace el script (así no depende del idioma de la hoja). */
+function sumarPorCliente_(libro) {
+  const hoja = libro.getSheetByName('Facturas') || libro.getSheets()[0];
+  const destino = libro.getSheetByName('Por cliente');
+  if (!destino) return;
+  const n = hoja.getLastRow() - 1;
+  const filas = n > 0 ? hoja.getRange(2, 1, n, COL_CLAVE).getValues() : [];
+  const num = v => (typeof v === 'number' ? v : 0);
+  const por = {};
+  filas.forEach(f => {
+    const cliente = String(f[4] || '').trim() || 'Sin cliente';
+    const c = por[cliente] = por[cliente] || [cliente, 0, 0, 0, 0, 0, 0];
+    c[1] += 1; if (f[10] !== 'Correcta') c[2] += 1;
+    c[3] += num(f[5]); c[4] += num(f[7]); c[5] += num(f[8]); c[6] += num(f[9]);
+  });
+  const redondea = c => c.map((v, i) => (i >= 3 ? Math.round(v * 100) / 100 : v));
+  const lista = Object.keys(por).map(k => redondea(por[k])).sort((a, b) => b[6] - a[6]);
+  const total = redondea(lista.reduce((t, c) => t.map((v, i) => (i ? v + c[i] : v)), ['Total', 0, 0, 0, 0, 0, 0]));
+  const max = destino.getMaxRows();
+  if (max > 1) destino.getRange(2, 1, max - 1, 7).clearContent().setFontWeight('normal').setBackground(null);
+  destino.getRange('A2:A').setFontWeight('bold');
+  destino.getRange('G2:G').setFontWeight('bold');
+  if (!lista.length) return;
+  destino.getRange(2, 1, lista.length + 1, 7).setValues(lista.concat([total]));
+  destino.getRange(lista.length + 2, 1, 1, 7).setFontWeight('bold').setBackground('#f1f1ee');
 }
 
 /** Para empezar con una hoja vacía (por ejemplo, después de volver a cargar la demo): la próxima vez se crea otra. */
