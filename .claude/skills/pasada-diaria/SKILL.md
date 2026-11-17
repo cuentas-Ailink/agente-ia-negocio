@@ -31,7 +31,8 @@ Los correos sospechosos no van a ningún subagente: no se contestan.
 
 ## 5. Etiquetar
 - A cada correo, su etiqueta «Agente/<Tipo>».
-- Además «Agente/Revisar» si el clasificador o el subagente lo piden, y «Agente/Sospechoso» si es sospechoso.
+- Además «Agente/Sospechoso» si es sospechoso, y «Agente/Revisar» solo si encaja en «Cuándo avisar a una persona» de `negocio/negocio.md` (factura con error o para revisar, queja, urgencia, Hacienda o Seguridad Social, tipo dudoso).
+- No pongas «Agente/Revisar» solo porque el borrador diga que un gestor contestará: todos los borradores los lee una persona antes de enviarlos. «Revisar» es para lo que no puede esperar a que alguien abra el borrador; si lo pones en todo, deja de servir.
 - No cambies el estado de leído ni muevas nada de la bandeja.
 
 ## 6. Aprender y resumir
