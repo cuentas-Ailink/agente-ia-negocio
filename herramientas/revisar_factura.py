@@ -14,6 +14,10 @@ La IA lee la factura (PDF o imagen) y copia en un JSON lo que pone, sin corregir
   "lineas": [{"base": 2310.00, "tipo_iva": 21, "cuota": 485.10}],
                                 # una por cada tipo de IVA; «cuota» = la que pone la factura
                                 # para ese tipo (opcional)
+  "conceptos": [                # opcional: las filas de la factura tal cual
+    {"cantidad": 12, "precio": 68.50, "importe": 822.00, "tipo_iva": 21}
+  ],                            # el programa comprueba cantidad × precio = importe y que
+                                # la suma de importes de cada tipo de IVA dé su base
   "cuota_iva": 485.10,          # la cuota TOTAL que pone la factura (opcional; si trae una
                                 # por tipo, ponlas en cada línea y deja esta fuera)
   "tipo_irpf": 0,               # % de retención (0 si no hay)
@@ -88,6 +92,23 @@ def revisar(f, tipos_iva=None, tipos_irpf=None, comprobar_nif=True):
             avisos.append("Factura sin IVA y sin motivo de exención escrito: confirmar que está exenta.")
     if float(tipo_irpf) not in [float(x) for x in tipos_irpf]:
         errores.append(f"Retención del {tipo_irpf} %: no es un tipo habitual.")
+
+    conceptos = f.get("conceptos") or []
+    for i, c in enumerate(conceptos, 1):
+        if c.get("cantidad") is not None and c.get("precio") is not None and c.get("importe") is not None:
+            imp_ok = d(Decimal(str(c["cantidad"])) * Decimal(str(c["precio"])))
+            if abs(d(c["importe"]) - imp_ok) > TOLERANCIA:
+                errores.append(f"Fila {i}: {c['cantidad']} × {euros(d(c['precio']))} = {euros(imp_ok)}, "
+                               f"pero pone {euros(d(c['importe']))}.")
+    if conceptos and all(c.get("importe") is not None for c in conceptos):
+        for l in lineas:
+            t = float(l.get("tipo_iva", 0))
+            filas = [c for c in conceptos if float(c.get("tipo_iva", l.get("tipo_iva", 0))) == t]
+            if filas:
+                suma = sum(d(c["importe"]) for c in filas)
+                if abs(suma - d(l.get("base"))) > TOLERANCIA:
+                    errores.append(f"Las filas al {l.get('tipo_iva', 0)} % suman {euros(suma)}, "
+                                   f"pero la base pone {euros(d(l.get('base')))}.")
 
     for l in lineas:
         if l.get("cuota") is not None:

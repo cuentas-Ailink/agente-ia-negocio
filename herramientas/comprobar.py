@@ -52,6 +52,12 @@ casos = [
     ("cuota por tipo mal", {"numero": "7", "fecha": "2026-11-01", "nif_emisor": "B12345674",
       "lineas": [{"base": 100, "tipo_iva": 21, "cuota": 21}, {"base": 50, "tipo_iva": 10, "cuota": 6}],
       "total": 176}, "error"),
+    ("fila mal leída", {"numero": "8", "fecha": "2026-11-01", "nif_emisor": "B12345674",
+      "lineas": [{"base": 1240, "tipo_iva": 4}], "total": 1289.60,
+      "conceptos": [{"cantidad": 40, "precio": 26, "importe": 1040}, {"cantidad": 3, "precio": 25, "importe": 200}]}, "error"),
+    ("filas que cuadran", {"numero": "9", "fecha": "2026-11-01", "nif_emisor": "B12345674",
+      "lineas": [{"base": 1240, "tipo_iva": 4}], "total": 1289.60,
+      "conceptos": [{"cantidad": 40, "precio": 26, "importe": 1040}, {"cantidad": 8, "precio": 25, "importe": 200}]}, "correcta"),
 ]
 for nombre, f, esperado in casos:
     r = revisar(f)

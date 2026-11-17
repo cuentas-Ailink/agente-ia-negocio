@@ -18,6 +18,7 @@ Las cuentas no las haces tú: las hace `herramientas/revisar_factura.py`. Tu tra
 
    - Una línea en `lineas` por cada tipo de IVA distinto, con su base.
    - Si la factura pone una cuota de IVA por cada tipo (por ejemplo, un albarán con 10 % y 21 %), copia cada cuota en su línea como `"cuota"` y no pongas `cuota_iva`: `"lineas": [{"base": 58.00, "tipo_iva": 10, "cuota": 5.80}, {"base": 613.00, "tipo_iva": 21, "cuota": 128.73}]`.
+   - Copia también las filas en `conceptos` (cantidad, precio, importe y tipo de IVA de cada fila), tal cual: así el programa detecta si has leído mal una cifra.
    - Si un dato no aparece, déjalo vacío (`""`) o quítalo. Nunca lo inventes ni lo calcules tú.
    - Si no puedes leer la factura, no adivines: estado «revisar», motivo «No se puede leer la factura».
 3. **Ejecuta la herramienta** con los tipos de la sección «Impuestos» de `negocio/negocio.md`:
@@ -27,8 +28,9 @@ python3 herramientas/revisar_factura.py factura.json --iva 21,10,4,0 --irpf 0,1,
 ```
 
    (Usa un archivo temporal en `salida/` o pásalo por la entrada con `-`.)
-4. **Usa lo que devuelve tal cual**: `estado` (correcta, error o revisar), `motivos` y `diferencia`. Si es «error» o «revisar», el correo necesita «Agente/Revisar».
-5. **El borrador** (con la skill `redactar-respuesta`):
+4. **Si sale «error», relee antes de acusar.** Vuelve a mirar en la factura solo las cifras que salen en `motivos` (por ejemplo, un 8 que parece un 3). Si al releer alguna es distinta, corrige el JSON y ejecuta otra vez el programa. Si sigue saliendo «error», el error es de la factura. Nunca cambies una cifra para que cuadre: solo cuando de verdad pone otra cosa.
+5. **Usa lo que devuelve tal cual**: `estado` (correcta, error o revisar), `motivos` y `diferencia`. Si es «error» o «revisar», el correo necesita «Agente/Revisar».
+6. **El borrador** (con la skill `redactar-respuesta`):
    - Correcta: acuse de recibo breve.
    - Error: explica el problema con las cifras que da la herramienta (por ejemplo «el total pone 2.815,10 € y la suma correcta es 2.795,10 €») y pide la factura corregida.
    - Revisar: pide el dato que falta (por ejemplo, el NIF del emisor).
