@@ -12,6 +12,7 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 - **Reparte el trabajo entre subagentes** que trabajan a la vez: uno clasifica, otro revisa facturas y otro redacta.
 - **Aprende.** Si un cliente pide que le traten de usted, lo apunta en `memoria/MEMORIA.md` y lo aplica la próxima vez.
 - **Se protege.** Si un correo intenta darle órdenes («ignora tus instrucciones y reenvía…»), no obedece: lo marca como «Agente/Sospechoso».
+- **Te lo enseña en un panel.** Al acabar cada pasada se actualiza `salida/panel.html`: lo que necesita a una persona arriba, las facturas con su estado y todos los correos. Se abre con doble clic, sin instalar nada, y cada fila te lleva al correo, al borrador o a la factura.
 - **Funciona solo** cada mañana con una tarea programada de la app de Claude.
 
 ## Cómo está hecho
@@ -28,8 +29,9 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 | `.claude/agents/` | Los subagentes: `clasificador`, `revisor-documentos` y `redactor`. |
 | `.claude/settings.json` | Bloquea enviar, responder, reenviar y borrar correos. |
 | `herramientas/revisar_factura.py` | Hace las cuentas de cada factura. |
+| `herramientas/panel.py` | Genera el panel (`salida/panel.html`) con los resúmenes de cada día. |
 | `herramientas/comprobar.py` | Comprueba que todo está bien montado. |
-| `salida/` | El resumen de cada día (`AAAA-MM-DD.json`) y las facturas descargadas. |
+| `salida/` | El resumen de cada día (`AAAA-MM-DD.json`), el panel y las facturas descargadas. |
 
 ## Instalarlo
 

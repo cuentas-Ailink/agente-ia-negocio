@@ -59,5 +59,6 @@ Los correos sospechosos no van a ningún subagente: no se contestan.
 ```
 
   Los minutos ahorrados son una estimación: 4 por factura revisada, 3 por borrador y 1 por correo solo etiquetado.
+- Actualiza el panel: `python3 herramientas/panel.py` (genera `salida/panel.html` con todos los días; lo hace el programa, no tú).
 - Comprueba el contrato: el número de correos del JSON coincide con los etiquetados y ninguno se ha enviado.
 - Termina con un resumen en el chat de 5 líneas como mucho: cuántos correos, cuántas facturas y cuáles tienen problemas (con la diferencia en euros), cuántos borradores están listos y qué necesita a una persona.
