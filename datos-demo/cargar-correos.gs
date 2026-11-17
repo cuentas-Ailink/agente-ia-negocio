@@ -50,6 +50,11 @@ function limpiarDemo() {
   GmailApp.search(consulta).forEach(h => { ids.add(h.getId()); h.moveToTrash(); hilos++; });
   // Avisos de «dirección no encontrada» si se envió alguna respuesta de prueba (las direcciones .demo no existen)
   GmailApp.search('from:mailer-daemon ".demo"').forEach(h => { h.moveToTrash(); hilos++; });
+  // Los WhatsApp de prueba («WhatsApp · Nombre», remitente con «+wa») y las alertas de seguridad de Google
+  GmailApp.search('subject:WhatsApp').forEach(h => {
+    if (h.getMessages().some(m => /\+wa\d+@/.test(m.getFrom()))) { ids.add(h.getId()); h.moveToTrash(); hilos++; }
+  });
+  GmailApp.search('from:no-reply@accounts.google.com').forEach(h => { h.moveToTrash(); hilos++; });
   GmailApp.getDrafts().forEach(d => {
     const m = d.getMessage();
     // Los del agente en esos hilos y sus resúmenes internos («Agente · resumen …»), para que el panel empiece limpio
@@ -57,7 +62,7 @@ function limpiarDemo() {
   });
   // Etiquetas del agente
   GmailApp.getUserLabels().forEach(l => { if (l.getName().indexOf('Agente') === 0) l.deleteLabel(); });
-  Logger.log('A la papelera: ' + hilos + ' hilos de demo. Borradores, resúmenes del agente y etiquetas «Agente/…» quitados.');
+  Logger.log('A la papelera: ' + hilos + ' hilos de demo (con los WhatsApp de prueba y las alertas de Google). Borradores, resúmenes del agente y etiquetas «Agente/…» quitados.');
 }
 
 // ---------------------------------------------------------------- ayudas
