@@ -554,6 +554,11 @@ button.kpi:hover{box-shadow:var(--sombra),0 0 0 1px #cfcfca}
 .pild.aten{background:var(--aten-f);color:var(--aten-t)}
 .pild.err{background:var(--err-f);color:var(--err-t)}
 .pild.neutra::before{display:none}
+.punto{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ter);vertical-align:middle;flex:none}
+.punto.ok{background:var(--ok)} .punto.aten{background:var(--aten)} .punto.err{background:var(--err)}
+.segm .punto{width:7px;height:7px;margin-right:6px;position:relative;top:-1px}
+.solo-lector{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.facturas-tabla td.col-estado{text-align:center}
 
 /* ---- Facturas */
 .segm{display:inline-flex;gap:3px;background:var(--suave);padding:3px;border-radius:11px;flex-wrap:wrap}
@@ -1095,7 +1100,8 @@ function pintarFacturas(){
   var segm = el('div',{class:'segm'});
   [['todas','Todas'],['error','Error','Con '],['revisar','Revisar','Por '],['correcta','Correctas']].forEach(function(x){
     var n = x[0] === 'todas' ? todas.length : todas.filter(function(c){ return est(c) === x[0]; }).length;
-    segm.append(el('button',{'aria-pressed': String(filtroFact === x[0]), onclick:function(){ filtroFact = x[0]; google.script.history.push({vista:'facturas'}, {vista:'facturas'}); pintarFacturas(); }}, x[2] ? el('span',{class:'corta-no'}, x[2]) : null, x[2] ? x[1].toLowerCase() : x[1], el('span',{class:'c'}, String(n))));
+    var pc = {error:'err', revisar:'aten', correcta:'ok'}[x[0]];
+    segm.append(el('button',{'aria-pressed': String(filtroFact === x[0]), onclick:function(){ filtroFact = x[0]; google.script.history.push({vista:'facturas'}, {vista:'facturas'}); pintarFacturas(); }}, pc ? el('span',{class:'punto ' + pc}) : null, x[2] ? el('span',{class:'corta-no'}, x[2]) : null, x[2] ? x[1].toLowerCase() : x[1], el('span',{class:'c'}, String(n))));
   });
   cuerpo.append(el('div',{class:'barra-f'}, segm));
   var orden = {error:0, revisar:1, correcta:2};
@@ -1103,7 +1109,7 @@ function pintarFacturas(){
     .sort(function(a, b){ return orden[est(a)] - orden[est(b)]; });
   var tb = el('tbody');
   var tabla = el('div',{class:'tarjeta'}, el('table',{class:'facturas-tabla'},
-    el('thead',{}, el('tr',{}, el('th',{}, 'Proveedor'), el('th',{class:'col-cliente'}, 'Cliente'), el('th',{style:'text-align:right'}, 'Total'), el('th',{}, 'Estado'), el('th',{style:'text-align:right'}, 'Diferencia'), el('th',{class:'col-flecha'}))),
+    el('thead',{}, el('tr',{}, el('th',{}, 'Proveedor'), el('th',{class:'col-cliente'}, 'Cliente'), el('th',{style:'text-align:right'}, 'Total'), el('th',{class:'col-estado', style:'width:72px;text-align:center'}, 'Estado'), el('th',{style:'text-align:right'}, 'Diferencia'), el('th',{class:'col-flecha'}))),
     tb));
   if (!lista.length) tb.append(el('tr',{}, el('td',{colspan:'6', class:'gris', style:'padding:22px 16px'}, todas.length ? 'Ninguna en este grupo.' : 'No hay facturas este día.')));
   lista.forEach(function(c){
@@ -1115,7 +1121,7 @@ function pintarFacturas(){
         el('div',{style:'min-width:0'}, el('div',{class:'nm'}, f.emisor || 'No se lee'), el('div',{class:'nr'}, f.numero ? 'N.º ' + f.numero : 'Sin número')))),
       el('td',{class:'col-cliente gris'}, c.cliente || nombreDe(c.de)),
       el('td',{class:'num col-total'}, eur(f.total_factura)),
-      el('td',{class:'col-estado'}, el('span',{class:'pild ' + cls}, ESTADO_F[e] || 'Revisar')),
+      el('td',{class:'col-estado', title: ESTADO_F[e] || 'Revisar'}, el('span',{class:'punto ' + cls}), el('span',{class:'solo-lector'}, ESTADO_F[e] || 'Revisar')),
       el('td',{class:'num dif col-dif' + (dif ? ' err' : '')}, dif || el('span',{class:'gris'}, '—')),
       el('td',{class:'col-flecha'}, ico('flecha'))));
   });
