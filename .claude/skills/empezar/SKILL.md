@@ -47,6 +47,8 @@ Explica para qué sirve: «Para leer cada correo como un chat y enviar el borrad
 4. «Implementar» → «Nueva implementación» → engranaje → «Aplicación web». Ejecutar como «Yo»; quién tiene acceso «Solo yo». Al aceptar los permisos, Google avisa de que la app no está verificada: es su propio script, «Configuración avanzada» → «Ir a Chat del correo».
 5. «Pégame aquí la URL que acaba en /exec».
 
+Antes del paso 1, pregunta si tiene varias cuentas de Google abiertas en el navegador. Si es así, que lo haga todo en una ventana privada con solo la cuenta del negocio: con varias cuentas, Google falla al dar los permisos («No se puede abrir el archivo en estos momentos»). Si aun así falla, que en el editor elija la función «datosBandeja» y pulse «Ejecutar» para aceptar los permisos, y después implemente.
+
 Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y `python3 herramientas/panel.py --abrir`. Dile que ahora tiene «Contestar correos» arriba del panel.
 
 ## 5. Cada mañana, solo

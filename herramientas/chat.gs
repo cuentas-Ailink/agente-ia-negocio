@@ -17,6 +17,10 @@
  *      python3 herramientas/panel.py --chat https://script.google.com/macros/s/…/exec
  *    Desde entonces, cada correo del panel tiene «Abrir chat».
  *
+ * Si tienes varias cuentas de Google abiertas en el navegador, hazlo todo (y abre el chat) en una ventana
+ * privada o un perfil con solo la cuenta del negocio: con varias cuentas, Google se lía con los permisos.
+ * Truco: antes de implementar, elige la función «datosBandeja» y pulsa «Ejecutar» para aceptar los permisos.
+ *
  * Si cambias este archivo, «Implementar» → «Gestionar implementaciones» → editar → «Nueva versión».
  */
 
