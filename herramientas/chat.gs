@@ -49,9 +49,11 @@ function datosBandeja() {
   const conBorrador = hilosConBorrador_();
   const mensajes = lista.length ? GmailApp.getMessagesForThreads(lista) : [];
   const conversaciones = lista.map((h, i) => {
-    const reales = mensajes[i].filter(m => !m.isDraft());
+    const todosReales = mensajes[i].filter(m => !m.isDraft());
+    const reales = todosReales.filter(m => !esAviso_(m));
     const suyo = reales.filter(m => !esMio_(m, yo))[0] || reales[0];
     const ultimo = reales[reales.length - 1] || suyo;
+    const fin = todosReales[todosReales.length - 1];
     const marcas = resumirEtiquetas_(nombresPorHilo[h.getId()]);
     return {
       id: h.getId(),
@@ -60,6 +62,7 @@ function datosBandeja() {
       fecha: ultimo ? ultimo.getDate().toISOString() : '',
       extracto: ultimo ? textoDe_(ultimo).replace(/\s+/g, ' ').slice(0, 140) : '',
       ultimoMio: !!(ultimo && esMio_(ultimo, yo)),
+      noEntregado: !!(fin && esAviso_(fin)),
       tipo: marcas.tipo, revisar: marcas.revisar, sospechoso: marcas.sospechoso,
       borrador: !!conBorrador[h.getId()]
     };
@@ -79,6 +82,10 @@ function datosHilo(id) {
   todos.forEach(m => {
     if (m.isDraft()) {
       if (enGmail && m.getId() === enGmail.mensaje) borrador = { id: enGmail.id, texto: textoDe_(m), para: direcciones_(m.getTo()) };
+      return;
+    }
+    if (esAviso_(m)) {
+      mensajes.push({ aviso: true, fecha: m.getDate().toISOString(), texto: textoAviso_(m) });
       return;
     }
     mensajes.push({
@@ -184,9 +191,18 @@ function hilosConBorrador_() {
 }
 
 function ultimoDelCliente_(mensajes, yo) {
-  const reales = mensajes.filter(m => !m.isDraft());
+  const reales = mensajes.filter(m => !m.isDraft() && !esAviso_(m));
   const suyos = reales.filter(m => !esMio_(m, yo));
   return suyos[suyos.length - 1] || reales[reales.length - 1] || null;
+}
+
+/** Los avisos automáticos de Gmail («No se ha encontrado la dirección»): no son del cliente ni se contestan. */
+function esAviso_(m) { return /mailer-daemon@|postmaster@/i.test(m.getFrom()); }
+
+function textoAviso_(m) {
+  const t = m.getPlainBody() || '';
+  const a = t.match(/(?:entregado a|delivered to)\s+(\S+@[^\s.]+(?:\.[^\s.]+)+?)(?=[\s,.]|$)/i);
+  return 'No se ha podido entregar' + (a ? ' a ' + a[1] : '') + '. Revisa la dirección.';
 }
 
 function esMio_(m, yo) { return direcciones_(m.getFrom()).toLowerCase().indexOf(yo) !== -1; }
@@ -323,6 +339,7 @@ a{color:inherit}
 .mensajes{flex:1;overflow-y:auto;padding:20px 24px;background:var(--fondo)}
 .dia{text-align:center;margin:14px 0 10px}
 .dia span{font-size:12px;color:var(--sec);background:var(--tarjeta);border:1px solid var(--linea);border-radius:999px;padding:2px 10px}
+.dia.aviso span{color:var(--err-t);background:var(--err-f);border-color:var(--err-f)}
 .msg{max-width:min(620px,78%);margin:0 0 10px}
 .msg .quien{font-size:12px;color:var(--sec);margin:0 0 3px 2px}
 .burbuja{background:var(--tarjeta);border:1px solid var(--linea);border-radius:12px;padding:10px 14px;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -419,7 +436,8 @@ function pintarLista(){
     var marcas = el('div',{class:'marcas'}, el('span',{}, c.tipo || 'Correo'));
     if (c.sospechoso) marcas.append(el('span',{class:'marca err'}, el('span',{class:'punto err'}), 'Sospechoso'));
     else if (c.revisar) marcas.append(el('span',{class:'marca aten'}, el('span',{class:'punto'}), 'Revisar'));
-    if (c.borrador) marcas.append(el('span',{class:'marca'}, '· Borrador listo'));
+    if (c.noEntregado) marcas.append(el('span',{class:'marca err'}, '· No entregado'));
+    else if (c.borrador) marcas.append(el('span',{class:'marca'}, '· Borrador listo'));
     else if (c.ultimoMio) marcas.append(el('span',{class:'marca ok'}, '· Contestado'));
     caja.append(el('button',{class:'conv', 'data-id': c.id, 'aria-current': String(actual === c.id), onclick: function(){ abrirHilo(c.id, true); }},
       el('div',{class:'fila1'}, el('span',{class:'quien'}, c.nombre), el('span',{class:'hora'}, c.fecha ? cuando(c.fecha) : '')),
@@ -474,6 +492,7 @@ function pintarHilo(h){
   var lista = el('div',{class:'mensajes', id:'mensajes'});
   var ultimoDia = '';
   h.mensajes.forEach(function(m){
+    if (m.aviso){ lista.append(el('div',{class:'dia aviso'}, el('span',{}, m.texto + ' · ' + hora(m.fecha)))); return; }
     var d = new Date(m.fecha).toDateString();
     if (d !== ultimoDia){ lista.append(el('div',{class:'dia'}, el('span',{}, diaLargo(m.fecha)))); ultimoDia = d; }
     var b = el('div',{class:'burbuja'}, m.texto || '(sin texto)');
