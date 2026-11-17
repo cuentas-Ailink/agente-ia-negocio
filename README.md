@@ -31,6 +31,7 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 | `.claude/settings.json` | Bloquea enviar, responder, reenviar y borrar correos. |
 | `herramientas/revisar_factura.py` | Hace las cuentas de cada factura. |
 | `herramientas/panel.gs` | El panel en Google: resumen, facturas y cada correo como un chat para revisar y enviar los borradores. Se instala una vez en tu cuenta de Google (las instrucciones están dentro). |
+| `herramientas/whatsapp-puente.js` | Opcional: el puente gratis en Cloudflare para que los WhatsApp de tus clientes lleguen al panel. |
 | `herramientas/resumen_gmail.py` | Prepara el borrador interno con el resumen de la pasada, que es de donde lo lee el panel de Google. |
 | `herramientas/panel.py` | El panel sin instalar nada (`salida/panel.html`), con los resúmenes de cada día. |
 | `herramientas/comprobar.py` | Comprueba que todo está bien montado. |
@@ -53,6 +54,18 @@ Guárdala en marcadores y, en el móvil, «Añadir a pantalla de inicio»: se ab
 
 Las facturas revisadas pasan solas a la hoja de Google «Facturas revisadas» (fecha, NIF, base, IVA, retención, total y estado), con una pestaña «Por cliente». Se abre desde «Facturas» → «Abrir hoja de facturas» y se descarga en CSV o Excel para el programa de contabilidad.
 
+## WhatsApp en el mismo panel (opcional, el siguiente nivel)
+
+Las fotos de facturas, los PDF y las preguntas que te mandan por WhatsApp entran en Gmail como un correo más («WhatsApp · Nombre», con el archivo adjunto). El agente los revisa en su pasada y deja la respuesta escrita, corta y sin firma. Tú la envías desde el panel con «Enviar por WhatsApp». Al cliente le llega al momento un «Recibido, gracias» fijo, que puedes cambiar o quitar.
+
+Qué hace falta:
+- Una app de Meta con WhatsApp (developers.facebook.com). La crea el negocio con su Facebook: una cuenta real y con tiempo, no recién creada. De ahí salen el token permanente, el identificador del número y la clave secreta de la app.
+- Una cuenta gratis de Cloudflare, para el puente. Meta no acepta avisar directamente a Google: el puente recibe el aviso, comprueba que es de Meta y se lo pasa al panel. No guarda nada.
+
+Los pasos están en el propio panel (nombre del negocio → WhatsApp) y al principio de `herramientas/whatsapp-puente.js`. Si escribes «quiero WhatsApp», Claude te guía.
+
+WhatsApp solo deja contestar dentro de las 24 horas desde el último mensaje del cliente, y el panel te lo dice. Contestar dentro de ese plazo no lo cobra Meta: solo cobra los mensajes con plantilla, y este agente no los usa.
+
 ## Adaptarlo a tu negocio
 
 En la app de Claude, con esta carpeta abierta, escribe:
@@ -71,5 +84,6 @@ Te hará como mucho 5 preguntas, escribirá `negocio/negocio.md` y `negocio/clie
 
 - Enviar correos por su cuenta: siempre los deja en borrador, a propósito. Envía una persona desde el chat o desde Gmail.
 - Otros correos que no sean Gmail.
+- Escribir primero por WhatsApp: solo contesta a quien te ha escrito en las últimas 24 horas.
 - Leer facturas escaneadas muy borrosas o escritas a mano: las marca para revisar.
 - Contabilizar las facturas en un programa de contabilidad.

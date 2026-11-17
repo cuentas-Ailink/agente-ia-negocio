@@ -1,6 +1,6 @@
 ---
 name: empezar
-description: Puesta en marcha guiada del agente, paso a paso (negocio, Gmail, primera pasada, panel en el móvil y tarea de cada mañana). Úsala cuando escriban «empezamos», «hola», «¿qué hago?», «configúralo», «ayúdame a instalarlo», o la primera vez que abren la carpeta.
+description: Puesta en marcha guiada del agente, paso a paso (negocio, Gmail, primera pasada, panel en el móvil y tarea de cada mañana; WhatsApp, opcional). Úsala cuando escriban «empezamos», «hola», «¿qué hago?», «configúralo», «ayúdame a instalarlo», «quiero WhatsApp», o la primera vez que abren la carpeta.
 ---
 
 # Puesta en marcha
@@ -61,6 +61,26 @@ Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y, si aún
 - Si no la tienes, dile dónde crearla en la app de Claude, con ese mismo texto.
 - Cuando esté creada, escribe la hora en `negocio/rutina.txt` (por ejemplo `08:00`) para que el estado la marque como hecha.
 - Recuérdale que el ordenador tiene que estar encendido y con la app de Claude abierta a esa hora.
+
+## WhatsApp (opcional, solo si lo pide)
+
+Si escribe «quiero WhatsApp» o pregunta por ello, explícalo en 2 líneas: los WhatsApp de sus clientes (texto, fotos de facturas, PDF) entran en Gmail como un correo más, el agente los revisa igual y la persona contesta desde el panel. Hace falta una app de Meta con WhatsApp, que el negocio crea con su propio Facebook (una cuenta real, no recién creada), y una cuenta gratis de Cloudflare para el puente.
+
+Pídele antes estos 3 datos de su app de Meta, y que no te los pegue a ti: los pegará él en el panel y en Cloudflare. Son el token permanente, el identificador del número de teléfono y la clave secreta de la app (Configuración de la app → Básica).
+
+Después, los pasos **como lista numerada, uno por línea**:
+
+1. En el panel: pulsa el nombre del negocio → WhatsApp → «Conectar». Pega el token y el identificador → «Conectar WhatsApp».
+2. En script.google.com, en «Panel del correo»: «Implementar» → «Nueva implementación» → engranaje → «Aplicación web». Ejecutar como «Yo»; quién tiene acceso: «Cualquier usuario». Copia la dirección que acaba en /exec.
+3. En el panel, en WhatsApp, pega esa dirección en el paso 1 → «Comprobar». Debajo aparecen PANEL y el token de verificación.
+4. En dash.cloudflare.com (cuenta gratis): «Compute» → «Workers & Pages» → «Create» → «Hello World», con el nombre whatsapp-negocio → «Deploy». Deja apagado «Protect with Cloudflare Access».
+5. «Edit code»: borra lo que hay y pega `herramientas/whatsapp-puente.js` (ofrécete a copiarlo con `LC_ALL=en_US.UTF-8 pbcopy < herramientas/whatsapp-puente.js`) → «Deploy».
+6. En el Worker → «Settings» → «Variables and Secrets» → «Add». Crea PANEL (tipo «Text») con el valor del panel, y APP_SECRET (tipo «Secret») con la clave secreta de la app → «Deploy».
+7. Abre la dirección del Worker (…workers.dev). Tiene que decir «Todo listo». Si dice otra cosa, el propio mensaje explica qué falta.
+8. En Meta → WhatsApp → «Configuración» → «Webhook»: pon la dirección del Worker y el token de verificación del panel → «Verificar y guardar». En «Campos del webhook», suscríbete a «messages».
+9. Prueba: que se mande un WhatsApp y una foto al número del negocio. En un minuto tienen que aparecer en el panel, en «Correos», con la etiqueta WhatsApp.
+
+Si cualquiera de los pasos da error, pídele una captura.
 
 ## Al terminar
 
