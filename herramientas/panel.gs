@@ -390,7 +390,7 @@ const PAGINA = String.raw`<!doctype html>
 :root{
   --lienzo:#e8e8e5; --app:#f5f5f3; --tarjeta:#fff; --linea:#e9e9e6; --linea-f:#dcdcd8; --suave:#f0f0ee; --hover:#f7f7f5;
   --tinta:#161616; --sec:#6c6c68; --ter:#a2a29d; --barra:#e3e3df;
-  --ok:#1f8a5b; --ok-f:#e7f4ed; --aten:#c47a16; --aten-t:#9f5f0c; --aten-f:#fbf0de; --err:#d23c2f; --err-t:#b8301f; --err-f:#fcebe8;
+  --ok:#1f8a5b; --ok-f:#e7f4ed; --aten:#c47a16; --aten-t:#9f5f0c; --aten-f:#fbf0de; --err:#d23c2f; --err-t:#b8301f; --err-f:#fcebe8; --ok-p:#34c47c; --aten-p:#f5c518;
   --sans:"Geist","Helvetica Neue",Arial,sans-serif; --mono:var(--sans);
   --r:16px; --sombra:0 1px 2px rgba(20,20,20,.04),0 1px 1px rgba(20,20,20,.02);
 }
@@ -437,7 +437,7 @@ svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .nav .c.on{background:var(--tinta);color:#fff;border-radius:999px;padding:1px 7px}
 .lado .pie{margin-top:auto;padding:14px;border-radius:14px;background:var(--tarjeta);box-shadow:var(--sombra),0 0 0 1px var(--linea)}
 .lado .pie .k{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
-.lado .pie .k .v{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-f)}
+.lado .pie .k .v{width:8px;height:8px;border-radius:50%;background:var(--ok-p);box-shadow:0 0 0 3px var(--ok-f)}
 .lado .pie p{margin:6px 0 0;font-size:12px;color:var(--sec)}
 
 /* ---- Zona principal */
@@ -544,7 +544,7 @@ button.kpi:hover{box-shadow:var(--sombra),0 0 0 1px #cfcfca}
 .fila-c:hover{background:var(--hover)}
 .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600;background:var(--suave);color:var(--sec);position:relative;flex:none}
 .av .est{position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;border:2px solid var(--tarjeta)}
-.av .est.err{background:var(--err)} .av .est.aten{background:var(--aten)}
+.av .est.err{background:var(--err)} .av .est.aten{background:var(--aten-p)}
 .fila-c .q{font-weight:500;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fila-c .a{font-size:12.5px;color:var(--sec);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fila-c .h{font-family:var(--mono);font-size:11.5px;color:var(--ter)}
@@ -555,7 +555,7 @@ button.kpi:hover{box-shadow:var(--sombra),0 0 0 1px #cfcfca}
 .pild.err{background:var(--err-f);color:var(--err-t)}
 .pild.neutra::before{display:none}
 .punto{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ter);vertical-align:middle;flex:none}
-.punto.ok{background:var(--ok)} .punto.aten{background:var(--aten)} .punto.err{background:var(--err)}
+.punto.ok{background:var(--ok-p)} .punto.aten{background:var(--aten-p)} .punto.err{background:var(--err)}
 .segm .punto{width:7px;height:7px;margin-right:6px;position:relative;top:-1px}
 .solo-lector{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .facturas-tabla td.col-estado{text-align:center}
@@ -1052,7 +1052,7 @@ function pintarResumen(){
   tu.append(ul);
   der.append(tu);
 }
-var COLOR = {correcta:'var(--ok)', revisar:'var(--aten)', error:'var(--err)'};
+var COLOR = {correcta:'var(--ok-p)', revisar:'var(--aten-p)', error:'var(--err)'};
 var NOMBRE_F = {correcta:'Correctas', revisar:'Por revisar', error:'Con error'};
 var ESTADO_F = {correcta:'Correcta', revisar:'Revisar', error:'Error'};
 function donut(cuenta, total){
