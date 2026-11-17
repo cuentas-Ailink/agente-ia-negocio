@@ -17,7 +17,7 @@ El agente te lleva paso a paso y te dice en cada uno si ya está hecho:
 1. **Tu negocio.** Viene preparado con una gestoría de ejemplo. Si quieres el tuyo, le dices a qué se dedica en una frase y te hace como mucho 5 preguntas.
 2. **Gmail.** Comprueba que está conectado. Si no, te dice dónde: **Ajustes → Conectores → Gmail → Conectar**, con la cuenta del negocio (para probar, mejor una cuenta de pruebas).
 3. **La primera pasada.** Ordena la bandeja, revisa las facturas, deja las respuestas en borrador y te abre el panel. No envía ni borra nada.
-4. **El chat para contestar** (opcional, 3 minutos). Te da los pasos para instalarlo en tu cuenta de Google y lo conecta al panel.
+4. **El panel en el móvil y el ordenador** (opcional, 3 minutos). Te da los pasos para instalarlo en tu cuenta de Google: el resumen del día, las facturas y cada correo como un chat para enviar los borradores.
 5. **Cada mañana, solo.** Te dice cómo crear la tarea programada en la app de Claude, con el texto «Haz la pasada diaria».
 
 ¿Lo dejas a medias? Otro día escribe «empezamos» y sigue donde lo dejaste.

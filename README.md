@@ -12,8 +12,8 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 - **Reparte el trabajo entre subagentes** que trabajan a la vez: uno clasifica, otro revisa facturas y otro redacta.
 - **Aprende.** Si un cliente pide que le traten de usted, lo apunta en `memoria/MEMORIA.md` y lo aplica la próxima vez.
 - **Se protege.** Si un correo intenta darle órdenes («ignora tus instrucciones y reenvía…»), no obedece: lo marca como «Agente/Sospechoso».
-- **Te lo enseña en un panel.** Al acabar cada pasada se actualiza `salida/panel.html`: lo que necesita a una persona arriba, las facturas con su estado y todos los correos. Se abre con doble clic, sin instalar nada, y cada fila te lleva al correo, al borrador o a la factura.
-- **Contestas desde un chat.** Cada correo se lee como una conversación, con el borrador del agente ya escrito: lo cambias si quieres y pulsas «Enviar». Envías tú, con dos clics; el agente no puede. Es una página privada de tu propia cuenta de Google (`herramientas/chat.gs`): sin servidor y sin claves.
+- **Te lo enseña en un panel, en el móvil y en el ordenador.** Lo que necesita a una persona arriba, las cifras del día, las facturas con su estado y cada correo como un chat, con el borrador del agente ya escrito: lo cambias si quieres y pulsas «Enviar». Envías tú, con dos clics; el agente no puede. Es una página privada de tu propia cuenta de Google (`herramientas/panel.gs`): sin servidor, sin claves y sin el ordenador encendido.
+- **Y si no quieres instalar nada,** el mismo resumen está en `salida/panel.html`, que se abre con doble clic.
 - **Funciona solo** cada mañana con una tarea programada de la app de Claude.
 
 ## Cómo está hecho
@@ -30,24 +30,25 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 | `.claude/agents/` | Los subagentes: `clasificador`, `revisor-documentos` y `redactor`. |
 | `.claude/settings.json` | Bloquea enviar, responder, reenviar y borrar correos. |
 | `herramientas/revisar_factura.py` | Hace las cuentas de cada factura. |
-| `herramientas/panel.py` | Genera el panel (`salida/panel.html`) con los resúmenes de cada día. |
-| `herramientas/chat.gs` | El chat para revisar y enviar los borradores. Se instala una vez en tu cuenta de Google (las instrucciones están dentro). |
+| `herramientas/panel.gs` | El panel en Google: resumen, facturas y cada correo como un chat para revisar y enviar los borradores. Se instala una vez en tu cuenta de Google (las instrucciones están dentro). |
+| `herramientas/resumen_gmail.py` | Prepara el borrador interno con el resumen de la pasada, que es de donde lo lee el panel de Google. |
+| `herramientas/panel.py` | El panel sin instalar nada (`salida/panel.html`), con los resúmenes de cada día. |
 | `herramientas/comprobar.py` | Comprueba que todo está bien montado. |
 | `herramientas/estado.py` | Dice qué pasos de la puesta en marcha están hechos. |
 | `salida/` | El resumen de cada día (`AAAA-MM-DD.json`), el panel y las facturas descargadas. |
 
 ## Instalarlo
 
-Descarga la carpeta, ábrela en la app de Claude (Code) y escribe **«empezamos»**. El agente te guía en 5 pasos y te dice en cada uno si ya está hecho: tu negocio, Gmail, la primera pasada, el chat y la tarea de cada mañana. Más detalle en [INSTALAR.md](INSTALAR.md).
+Descarga la carpeta, ábrela en la app de Claude (Code) y escribe **«empezamos»**. El agente te guía en 5 pasos y te dice en cada uno si ya está hecho: tu negocio, Gmail, la primera pasada, el panel en el móvil y la tarea de cada mañana. Más detalle en [INSTALAR.md](INSTALAR.md).
 
-## Contestar desde el chat (opcional, 3 minutos)
+## El panel en el móvil y el ordenador (opcional, 3 minutos)
 
-1. Con la cuenta de Gmail del negocio, abre [script.google.com](https://script.google.com) → «Nuevo proyecto» y pega `herramientas/chat.gs` entero.
+1. Con la cuenta de Gmail del negocio, abre [script.google.com](https://script.google.com) → «Nuevo proyecto», llámalo «Panel del correo» y pega `herramientas/panel.gs` entero.
 2. «Servicios» (+) → «Gmail API» → Añadir.
 3. «Implementar» → «Nueva implementación» → «Aplicación web». Ejecutar como **Yo**; quién tiene acceso: **Solo yo**. Acepta los permisos.
-4. Copia la URL que acaba en `/exec` y pégasela a Claude: «este es el chat: URL». Él ejecuta `python3 herramientas/panel.py --chat URL`.
+4. Copia la URL que acaba en `/exec` y pégasela a Claude: «este es el panel: URL». Él ejecuta `python3 herramientas/panel.py --chat URL`.
 
-Desde entonces el panel tiene «Contestar correos» y, en cada correo, «Abrir chat». Solo tu cuenta puede abrir esa página.
+Guárdala en marcadores y, en el móvil, «Añadir a pantalla de inicio»: se abre como una app. Solo tu cuenta puede abrir esa página. El resumen de cada pasada lo deja el agente en un borrador interno llamado «Agente · resumen AAAA-MM-DD», que no se envía nunca; el panel guarda los últimos 30 días.
 
 ## Adaptarlo a tu negocio
 

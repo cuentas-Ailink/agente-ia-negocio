@@ -22,7 +22,8 @@ for ruta, que in [
     ("contrato-de-tarea.md", "Vuelve a descargar el repositorio."),
     (".claude/skills/pasada-diaria/SKILL.md", "Vuelve a descargar el repositorio."),
     ("herramientas/panel.py", "Vuelve a descargar el repositorio."),
-    ("herramientas/chat.gs", "Vuelve a descargar el repositorio."),
+    ("herramientas/panel.gs", "Vuelve a descargar el repositorio."),
+    ("herramientas/resumen_gmail.py", "Vuelve a descargar el repositorio."),
     ("herramientas/estado.py", "Vuelve a descargar el repositorio."),
     (".claude/skills/empezar/SKILL.md", "Vuelve a descargar el repositorio."),
 ]:

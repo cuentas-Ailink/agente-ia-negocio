@@ -1,11 +1,11 @@
 ---
 name: empezar
-description: Puesta en marcha guiada del agente, paso a paso (negocio, Gmail, primera pasada, chat y tarea de cada mañana). Úsala cuando escriban «empezamos», «hola», «¿qué hago?», «configúralo», «ayúdame a instalarlo», o la primera vez que abren la carpeta.
+description: Puesta en marcha guiada del agente, paso a paso (negocio, Gmail, primera pasada, panel en el móvil y tarea de cada mañana). Úsala cuando escriban «empezamos», «hola», «¿qué hago?», «configúralo», «ayúdame a instalarlo», o la primera vez que abren la carpeta.
 ---
 
 # Puesta en marcha
 
-La persona no sabe programar y no tiene que abrir ningún archivo. Tú haces el trabajo y le pides solo lo que no puedes hacer tú (conectar Gmail, pegar el chat, crear la tarea en la app).
+La persona no sabe programar y no tiene que abrir ningún archivo. Tú haces el trabajo y le pides solo lo que no puedes hacer tú (conectar Gmail, instalar el panel en su cuenta de Google, crear la tarea en la app).
 
 **Cómo hablas en esta skill:**
 - Un paso cada vez. Una sola pregunta por mensaje.
@@ -37,21 +37,21 @@ Si «estado.py» dice que hay algo mal montado, ejecuta `python3 herramientas/co
 - Pide el OK y, con él, usa la skill `pasada-diaria`.
 - Al acabar, abre el panel: `python3 herramientas/panel.py --abrir`. Di qué mirar primero: «Necesita a una persona».
 
-## 4. Chat para contestar (opcional)
+## 4. Panel en el móvil y el ordenador (opcional)
 
-Explica para qué sirve: «Para leer cada correo como un chat y enviar el borrador con un clic, sin buscarlo en Gmail». Pregunta si ya lo tiene instalado: si es así, solo pide la URL que acaba en /exec.
+Explica para qué sirve: «Es tu panel en una página privada de Google: ves el resumen del día y las facturas, y cada correo se abre como un chat para enviar el borrador con un clic. Funciona en el móvil, aunque el ordenador esté apagado». Pregunta si ya lo tiene instalado: si es así, solo pide la URL que acaba en /exec. Si lo instaló antes como «Chat del correo», basta con pegar el archivo nuevo encima y crear una «Nueva versión» («Implementar» → «Gestionar implementaciones» → lápiz): la dirección no cambia.
 
 Si lo quiere instalar, escribe estos pasos **como lista numerada, uno por línea, con los nombres de los botones entre comillas**. No los resumas en un párrafo: la persona los va siguiendo mientras mira la pantalla.
 
-1. Con la cuenta de Gmail del negocio, entra en script.google.com → «Nuevo proyecto» y llámalo «Chat del correo».
-2. Borra lo que haya y pega el contenido de `herramientas/chat.gs`. Para que no tenga que abrir el archivo, ofrécete a copiarlo al portapapeles con `pbcopy < herramientas/chat.gs` (en Mac).
+1. Con la cuenta de Gmail del negocio, entra en script.google.com → «Nuevo proyecto» y llámalo «Panel del correo».
+2. Borra lo que haya y pega el contenido de `herramientas/panel.gs`. Para que no tenga que abrir el archivo, ofrécete a copiarlo al portapapeles con `pbcopy < herramientas/panel.gs` (en Mac).
 3. A la izquierda, «Servicios» (+) → «Gmail API» → «Añadir».
-4. «Implementar» → «Nueva implementación» → engranaje → «Aplicación web». Ejecutar como «Yo»; quién tiene acceso «Solo yo». Al aceptar los permisos, Google avisa de que la app no está verificada: es su propio script, «Configuración avanzada» → «Ir a Chat del correo».
+4. «Implementar» → «Nueva implementación» → engranaje → «Aplicación web». Ejecutar como «Yo»; quién tiene acceso «Solo yo». Al aceptar los permisos, Google avisa de que la app no está verificada: es su propio script, «Configuración avanzada» → «Ir a Panel del correo».
 5. «Pégame aquí la URL que acaba en /exec».
 
 Antes del paso 1, pregunta si tiene varias cuentas de Google abiertas en el navegador. Si es así, que lo haga todo en una ventana privada con solo la cuenta del negocio: con varias cuentas, Google falla al dar los permisos («No se puede abrir el archivo en estos momentos»). Si aun así falla, que en el editor elija la función «datosBandeja» y pulse «Ejecutar» para aceptar los permisos, y después implemente.
 
-Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y `python3 herramientas/panel.py --abrir`. Dile que ahora tiene «Contestar correos» arriba del panel.
+Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y, si aún no lo has hecho en esta pasada, deja el borrador del resumen como dice el paso 6 de `pasada-diaria`. Después `python3 herramientas/panel.py --abrir`, que ya abre el panel de Google. Dile que lo guarde en marcadores y, en el móvil, que lo abra con la misma cuenta y use «Añadir a pantalla de inicio».
 
 ## 5. Cada mañana, solo
 

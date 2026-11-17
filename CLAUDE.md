@@ -44,9 +44,11 @@ Todas cuelgan de «Agente/»: una por cada tipo de la tabla del negocio, más do
 
 Si una etiqueta no existe, créala.
 
-## El chat para contestar
+## El panel en Google
 
-Las personas revisan y envían los borradores desde un chat privado de su cuenta de Google (`herramientas/chat.gs`, instrucciones dentro). Si te dan su dirección (acaba en `/exec`), ejecuta `python3 herramientas/panel.py --chat <dirección>` y el panel tendrá «Abrir chat» en cada correo. Ese chat lo usa una persona: tú sigues sin enviar nunca.
+Las personas ven el resumen y revisan y envían los borradores desde una página privada de su cuenta de Google (`herramientas/panel.gs`, instrucciones dentro), en el móvil o en el ordenador. Si te dan su dirección (acaba en `/exec`), ejecuta `python3 herramientas/panel.py --chat <dirección>`. Ese panel lo usa una persona: tú sigues sin enviar nunca.
+
+El panel lee el resumen de cada pasada de un borrador interno que dejas tú al final («Agente · resumen AAAA-MM-DD», dirigido a la propia cuenta, con el resumen adjunto). Ese borrador es la única excepción a «un borrador por correo»: no es una respuesta y nunca se envía.
 
 ## Adaptarlo a otro negocio
 

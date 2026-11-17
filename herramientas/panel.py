@@ -3,9 +3,9 @@
 
 Uso:
   python3 herramientas/panel.py            # crea o actualiza salida/panel.html
-  python3 herramientas/panel.py --abrir    # y lo abre en el navegador
-  python3 herramientas/panel.py --chat URL # guarda la dirección del chat (herramientas/chat.gs)
-                                           # y cada correo del panel tiene «Abrir chat»
+  python3 herramientas/panel.py --abrir    # y abre el panel: el de Google si está instalado, si no este
+  python3 herramientas/panel.py --chat URL # guarda la dirección del panel de Google (herramientas/panel.gs);
+                                           # este panel tendrá «Abrir chat» en cada correo
 
 El panel es un solo archivo HTML: se abre con doble clic, sin servidor ni instalación.
 Lo genera este programa, no la IA: solo pinta lo que dicen los JSON de cada día.
@@ -53,11 +53,11 @@ def chat(argv):
         url = argv[i + 1].strip() if i + 1 < len(argv) else ""
         url = re.split(r"[?#]", url)[0]  # si se copia con ?hilo=… desde la barra del navegador
         if not re.fullmatch(r"https://script\.google\.com/[^\s\"'<>]+/exec", url):
-            sys.exit("La dirección del chat tiene que ser la de tu script de Google y acabar en /exec "
+            sys.exit("La dirección del panel tiene que ser la de tu script de Google y acabar en /exec "
                      "(«Implementar» → «Gestionar implementaciones» → copiar la URL de la aplicación web).")
         CHAT.parent.mkdir(exist_ok=True)
         CHAT.write_text(url + "\n", encoding="utf-8")
-        print("Chat guardado: cada correo del panel tendrá «Abrir chat».")
+        print("Panel de Google guardado: «--abrir» abrirá esa página.")
         return url
     if CHAT.exists():
         return CHAT.read_text(encoding="utf-8").strip() or None
@@ -67,13 +67,14 @@ def chat(argv):
 def main(argv):
     SALIDA.mkdir(exist_ok=True)
     dias = cargar_dias()
-    datos = json.dumps({"negocio": negocio(), "chat": chat(argv), "dias": dias}, ensure_ascii=False).replace("</", "<\\/")
+    url_chat = chat(argv)
+    datos = json.dumps({"negocio": negocio(), "chat": url_chat, "dias": dias}, ensure_ascii=False).replace("</", "<\\/")
     html = PLANTILLA.replace("__DATOS__", datos)
     destino = SALIDA / "panel.html"
     destino.write_text(html, encoding="utf-8")
     print(f"Panel actualizado: {destino.relative_to(RAIZ)} ({len(dias)} día{'s' if len(dias) != 1 else ''})")
     if "--abrir" in argv:
-        webbrowser.open(destino.as_uri())
+        webbrowser.open(url_chat or destino.as_uri())
 
 
 PLANTILLA = r"""<!doctype html>
@@ -257,7 +258,7 @@ function el(tag, attrs={}, ...hijos){
   return e;
 }
 function abrir(url){ if (url) window.open(url, '_blank', 'noopener'); }
-// El chat (herramientas/chat.gs) se abre siempre en la misma pestaña, como una app.
+// El panel de Google (herramientas/panel.gs) se abre siempre en la misma pestaña, como una app.
 function abrirChat(hilo){ if (D.chat) window.open(D.chat + (hilo ? '?hilo=' + encodeURIComponent(hilo) : ''), 'chat-del-correo'); }
 const abrirCorreo = c => D.chat && c.hilo ? abrirChat(c.hilo) : abrir(c.url);
 
