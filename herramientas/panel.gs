@@ -341,7 +341,7 @@ function sumarPorCliente_(libro) {
 }
 
 /** Para empezar con una hoja vacía (por ejemplo, después de volver a cargar la demo): la próxima vez se crea otra. */
-/** Para grabar o probar: que la respuesta automática de WhatsApp vuelva a salir ya a todos, sin esperar las 6 horas. */
+/** Para grabar o probar: que la respuesta automática de WhatsApp vuelva a salir ya a todos, sin esperar la media hora. */
 function reiniciarRespuestasAutomaticas() {
   const props = PropertiesService.getScriptProperties();
   const claves = props.getKeys().filter(k => k.indexOf('wa_a_') === 0);
@@ -487,7 +487,7 @@ function enviar(id, texto) {
 // 1. Se comprueba la clave de la dirección y que el aviso es de vuestro número.
 // 2. Deja el mensaje en vuestro Gmail como un correo más, con la foto o el PDF adjunto, en un hilo por cliente
 //    («WhatsApp · Nombre»). Nada se envía: se inserta en la bandeja. Así la pasada del agente lo revisa igual.
-// 3. Contesta por WhatsApp un acuse fijo («Recibido, gracias…»), como mucho uno cada 6 horas por cliente.
+// 3. Contesta por WhatsApp un acuse fijo («Recibido, gracias…»), como mucho uno cada media hora por cliente, para que una ráfaga de mensajes no reciba el mismo aviso varias veces.
 //    Es un texto que escribe el negocio, no el agente, y se puede dejar vacío para no mandarlo.
 // La respuesta de verdad la envía una persona desde este panel, con «Enviar», y sale por WhatsApp.
 // WhatsApp solo deja contestar dentro de las 24 h desde el último mensaje del cliente: el panel lo enseña.
@@ -495,7 +495,7 @@ function enviar(id, texto) {
 const GRAPH_ = 'https://graph.facebook.com/v26.0';
 const ACUSE_POR_DEFECTO = 'Hola, gracias por escribirnos. Hemos recibido tu mensaje y el equipo ya lo está revisando. Te contestamos por aquí.';
 const RE_WA_ = /\+wa(\d{6,15})@/i;
-const HORAS_ENTRE_ACUSES = 6;
+const MINUTOS_ENTRE_ACUSES = 30;
 const DIA_MS_ = 24 * 3600 * 1000;
 
 function ajustesWhatsApp_() {
@@ -725,7 +725,7 @@ function acusar_(tel, a) {
   if (!a.acuse) return;
   const props = PropertiesService.getScriptProperties();
   const ultimo = Number(props.getProperty('wa_a_' + tel) || 0);
-  if (Date.now() - ultimo < HORAS_ENTRE_ACUSES * 3600 * 1000) return;
+  if (Date.now() - ultimo < MINUTOS_ENTRE_ACUSES * 60 * 1000) return;
   try {
     enviarWhatsApp_(tel, a.acuse, a);
     props.setProperty('wa_a_' + tel, String(Date.now()));
@@ -1453,7 +1453,7 @@ textarea:focus{outline:0}
       <div class="campos" id="wa-campos" hidden>
         <label class="campo">Token permanente de Meta<input type="password" id="wa-token" autocomplete="off" placeholder="EAAG…"><span class="ayuda">El del usuario del sistema, que no caduca. No se vuelve a enseñar.</span></label>
         <label class="campo">Identificador del número de teléfono<input type="text" id="wa-numero" inputmode="numeric" placeholder="Lo ves en Meta → WhatsApp → Configuración de la API"></label>
-        <label class="campo">Respuesta automática al recibir algo<textarea id="wa-acuse" rows="2" maxlength="500"></textarea><span class="ayuda">Un texto fijo, como mucho uno cada 6 horas por cliente. Déjalo vacío para no mandar nada.</span></label>
+        <label class="campo">Respuesta automática al recibir algo<textarea id="wa-acuse" rows="2" maxlength="500"></textarea><span class="ayuda">Un texto fijo, como mucho uno cada media hora por cliente. Déjalo vacío para no mandar nada.</span></label>
         <div class="fila-b"><button type="button" class="boton negro" id="wa-guardar">Conectar WhatsApp</button><button type="button" class="boton" id="wa-qr">Probar con un QR, sin Meta</button><button type="button" class="boton fantasma" id="wa-quitar" hidden>Desconectar</button><span class="estado" id="wa-aviso"></span></div>
       </div>
       <div class="meta" id="wa-meta" hidden>
