@@ -62,7 +62,7 @@ Si te piden cambiar el agente (y no procesar correos), trabaja en los archivos y
 
 ## Si te piden «actualiza el agente»
 
-- Si la carpeta es un clon de git: `git stash` (si hay cambios), `git pull` y `git stash pop`. Si hay conflictos en `negocio/` o `memoria/`, gana lo de la persona; en lo demás, lo nuevo. Después ejecuta `python3 herramientas/comprobar.py` y di en dos líneas qué ha cambiado (`git log` desde la versión anterior).
+- Si la carpeta es un clon de git: `git stash` (si hay cambios), `git pull` y `git stash pop`. Si hay conflictos en `negocio/` o `memoria/`, gana lo de la persona; en lo demás, lo nuevo. Después ejecuta `python3 herramientas/comprobar.py`, di en dos líneas qué ha cambiado (`git log` desde la versión anterior) y pídele que abra una conversación nueva en esta carpeta: esta sigue con las instrucciones de antes.
 - Si no es un clon (la descargaron en ZIP): dile que descargue el ZIP nuevo y copie dentro su `negocio/` y su `memoria/`, o que lo clone (INSTALAR.md, paso 1).
 
 ## Si te piden «actualiza el panel» (o el panel avisa de una versión nueva)

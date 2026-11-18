@@ -37,11 +37,13 @@ Si «estado.py» dice que hay algo mal montado, ejecuta `python3 herramientas/co
 - Pide el OK y, con él, usa la skill `pasada-diaria`.
 - Al acabar, si el panel ya está instalado (existe `negocio/chat.txt`), ábrelo con `python3 herramientas/panel.py --abrir` y di qué mirar primero: «Necesita a una persona». Si no, no abras nada: di que ya puede ver las etiquetas y los borradores en Gmail y pasa al paso 4, que es donde se monta el panel. No hay otro panel: no generes ni abras `salida/panel.html`.
 
-## 4. Panel en el móvil y el ordenador
+## 4. Panel en el móvil y el ordenador (recomendado)
 
-Explica para qué sirve: «Es tu panel en una página privada de Google: ves el resumen del día y las facturas, y cada correo se abre como un chat para enviar el borrador con un clic. Además, las facturas revisadas van solas a una hoja de Google, lista para contabilidad. Funciona en el móvil, aunque el ordenador esté apagado». Pregunta si ya lo tiene instalado: si es así, solo pide la URL que acaba en /exec. Si lo instaló antes como «Chat del correo», basta con pegar el archivo nuevo encima, ejecutar una vez la función «prepararHoja» (acepta el permiso nuevo y crea la hoja de facturas) y crear una «Nueva versión» («Implementar» → «Gestionar implementaciones» → lápiz): la dirección no cambia.
+Explica para qué sirve: «Es tu panel en una página privada de Google: ves el resumen del día y las facturas, y cada correo se abre como un chat para enviar el borrador con un clic. Además, las facturas revisadas van solas a una hoja de Google, lista para contabilidad. Funciona en el móvil, aunque el ordenador esté apagado». Pregunta si ya lo tiene instalado: si es así, solo pide la URL que acaba en /exec.
 
-Si lo quiere instalar, escribe estos pasos **como lista numerada, uno por línea, con los nombres de los botones entre comillas**. No los resumas en un párrafo: la persona los va siguiendo mientras mira la pantalla.
+Si no lo quiere ahora, no insistas: el agente funciona igual con Gmail (las respuestas quedan en borrador y las envía desde Gmail) y puede instalarlo otro día escribiendo «empezamos».
+
+Si lo quiere instalar, primero pregunta si tiene varias cuentas de Google abiertas en el navegador. Si es así, que lo haga todo en una ventana privada con solo la cuenta del negocio: con varias cuentas, Google falla al dar los permisos («No se puede abrir el archivo en estos momentos»). Después escribe estos pasos **como lista numerada, uno por línea, con los nombres de los botones entre comillas**. No los resumas en un párrafo: la persona los va siguiendo mientras mira la pantalla.
 
 1. Con la cuenta de Gmail del negocio, entra en script.google.com → «Nuevo proyecto» y llámalo «Panel del correo».
 2. Borra lo que haya y pega el contenido de `herramientas/panel.gs`. Para que no tenga que abrir el archivo, ofrécete a copiarlo al portapapeles con `LC_ALL=en_US.UTF-8 pbcopy < herramientas/panel.gs` (en Mac; sin `LC_ALL` el Mac estropea los acentos y el panel se queda en «Cargando»). Pídele que compruebe que las tildes se ven bien al pegar.
@@ -50,9 +52,7 @@ Si lo quiere instalar, escribe estos pasos **como lista numerada, uno por línea
 5. «Implementar» → «Nueva implementación» → engranaje → «Aplicación web». Ejecutar como «Yo»; quién tiene acceso «Solo yo».
 6. «Pégame aquí la URL que acaba en /exec».
 
-Antes del paso 1, pregunta si tiene varias cuentas de Google abiertas en el navegador. Si es así, que lo haga todo en una ventana privada con solo la cuenta del negocio: con varias cuentas, Google falla al dar los permisos («No se puede abrir el archivo en estos momentos»). 
-
-Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y, si aún no lo has hecho en esta pasada, deja el borrador del resumen como dice el paso 6 de `pasada-diaria`. Después `python3 herramientas/panel.py --abrir`, que ya abre el panel de Google. Dile que lo guarde en marcadores y, en el móvil, que lo abra con la misma cuenta y use «Añadir a pantalla de inicio». Para poner el logo y el nombre de su negocio: que pulse el nombre de arriba a la izquierda (en el móvil, el icono de arriba), «Subir logo» y «Guardar». La hoja de facturas se abre desde «Facturas» → «Abrir hoja de facturas».
+Cuando la pegue, ejecuta `python3 herramientas/panel.py --chat <URL>` y, si aún no lo has hecho en esta pasada, deja el borrador del resumen como dice el paso 6 de `pasada-diaria`. Después `python3 herramientas/panel.py --abrir`, que ya abre el panel de Google. Dile que lo guarde en marcadores y, en el móvil, que lo abra con la misma cuenta y use «Añadir a pantalla de inicio». El nombre del negocio sale solo después de la primera pasada. Para poner su logo: que pulse el nombre de arriba a la izquierda (en el móvil, el icono de arriba), «Subir logo» y «Guardar». Si abre el panel antes de la primera pasada, el propio panel le dice qué hacer. La hoja de facturas se abre desde «Facturas» → «Abrir hoja de facturas».
 
 ## 5. Cada mañana, solo
 
@@ -96,7 +96,7 @@ Si elige el QR, los pasos **como lista numerada**:
 4. Se abre una página con el QR: que lo escanee con el WhatsApp de pruebas → Ajustes → Dispositivos vinculados → Vincular un dispositivo.
 5. Prueba: desde uno de los números permitidos, un WhatsApp y una foto a ese WhatsApp. Al momento le llega la respuesta automática (se cambia en el panel, en WhatsApp) y el mensaje sale como leído. Entra en Gmail como «WhatsApp · Nombre»; después de «haz la pasada» aparece en el panel con su borrador. Lo que envíe desde el panel sale por ese WhatsApp.
 
-Funciona mientras esa ventana de Terminal siga abierta y el ordenador encendido. Otro día basta con `node herramientas/whatsapp-qr.mjs` en esta carpeta: recuerda el panel, los números y la sesión. Si el móvil dice «Revisa tu conexión» al escanear, cierra la ventana, ejecuta `node herramientas/whatsapp-qr.mjs --desvincular` y vuelve a abrirla.
+Funciona mientras esa ventana de Terminal siga abierta y el ordenador encendido. Otro día, doble clic en «Abrir WhatsApp.command», en esta carpeta: recuerda el panel, los números y la sesión, y si hace falta pide un número nuevo. Si el móvil dice «Revisa tu conexión» al escanear, cierra la ventana, ejecuta `node herramientas/whatsapp-qr.mjs --desvincular` y vuelve a abrirla.
 
 Si elige Meta: pídele antes estos 3 datos de su app de Meta, y que no te los pegue a ti: los pegará él en el panel y en Cloudflare. Son el token permanente, el identificador del número de teléfono y la clave secreta de la app (Configuración de la app → Básica).
 

@@ -49,7 +49,7 @@ def pasadas():
 
 def chat():
     url = (leer("negocio/chat.txt") or "").strip()
-    return ("hecho", "Instalado en tu cuenta de Google.") if url else ("falta", "3 minutos, una sola vez. Es donde se revisan y se envían las respuestas.")
+    return ("hecho", "Instalado en tu cuenta de Google.") if url else ("falta", "Recomendado, 3 minutos y una sola vez: el resumen en el móvil y enviar con un clic.")
 
 
 def rutina():
@@ -58,6 +58,9 @@ def rutina():
 
 
 def main():
+    viejo = RAIZ / "salida" / "panel.html"  # el panel de archivo de versiones antiguas: ya no existe
+    if viejo.exists():
+        viejo.unlink()
     pasos = [
         ("Tu negocio", *negocio()),
         ("Gmail conectado", "claude", "Lo compruebo yo desde la app."),

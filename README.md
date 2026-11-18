@@ -32,6 +32,7 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 | `herramientas/panel.gs` | El panel en Google: resumen, facturas y cada correo como un chat para revisar y enviar los borradores. Se instala una vez en tu cuenta de Google (las instrucciones están dentro). |
 | `herramientas/whatsapp-puente.js` | Opcional: el puente gratis en Cloudflare para que los WhatsApp de tus clientes lleguen al panel. |
 | `herramientas/whatsapp-qr.mjs` | Opcional: WhatsApp por QR desde el ordenador, para probarlo sin Meta. |
+| `Abrir WhatsApp.command` | Doble clic para volver a conectar el WhatsApp por QR otro día. |
 | `herramientas/resumen_gmail.py` | Prepara el borrador interno con el resumen de la pasada, que es de donde lo lee el panel de Google. |
 | `herramientas/panel.py` | Guarda la dirección del panel de Google y lo abre. |
 | `herramientas/comprobar.py` | Comprueba que todo está bien montado. |
@@ -42,7 +43,7 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 
 En la app de Claude (Code), pide «Clona https://github.com/cuentas-Ailink/agente-ia-negocio en Documentos», abre esa carpeta y escribe **«empezamos»**. El agente te guía en 5 pasos y te dice en cada uno si ya está hecho: tu negocio, Gmail, la primera pasada, el panel en el móvil y la tarea de cada mañana. Más detalle en [INSTALAR.md](INSTALAR.md).
 
-## El panel en el móvil y el ordenador (opcional, 3 minutos)
+## El panel en el móvil y el ordenador (recomendado, 3 minutos)
 
 1. Con la cuenta de Gmail del negocio, abre [script.google.com](https://script.google.com) → «Nuevo proyecto», llámalo «Panel del correo» y pega `herramientas/panel.gs` entero.
 2. «Servicios» (+) → «Gmail API» → Añadir.
@@ -56,7 +57,7 @@ Las facturas revisadas pasan solas a la hoja de Google «Facturas revisadas» (f
 
 ## WhatsApp en el mismo panel (opcional, el siguiente nivel)
 
-Las fotos de facturas, los PDF y las preguntas que te mandan por WhatsApp entran en Gmail como un correo más («WhatsApp · Nombre», con el archivo adjunto). El agente los revisa en su pasada y deja la respuesta escrita, corta y sin firma. Tú la envías desde el panel con «Enviar por WhatsApp». Al cliente le llega al momento un «Recibido, gracias» fijo, que puedes cambiar o quitar.
+Las fotos de facturas, los PDF y las preguntas que te mandan por WhatsApp entran en Gmail como un correo más («WhatsApp · Nombre», con el archivo adjunto). El agente los revisa en su pasada y deja la respuesta escrita, corta y sin firma. Tú la envías desde el panel con «Enviar por WhatsApp». Al cliente le llega al momento una respuesta automática («Hola, gracias por escribirnos. Hemos recibido tu mensaje y el equipo ya lo está revisando…»), como mucho una cada media hora, que puedes cambiar o quitar.
 
 Qué hace falta:
 - Una app de Meta con WhatsApp (developers.facebook.com). La crea el negocio con su Facebook: una cuenta real y con tiempo, no recién creada. De ahí salen el token permanente, el identificador del número y la clave secreta de la app. La app tiene que estar publicada: sin publicar, Meta no manda los mensajes de verdad.
@@ -66,7 +67,7 @@ Los pasos están en el propio panel (nombre del negocio → WhatsApp) y al princ
 
 ### Probarlo antes con un QR, sin Meta
 
-Para probarlo o enseñarlo sin crear la app de Meta, el ordenador hace de móvil: se vincula a un WhatsApp con un QR, como WhatsApp Web. En el panel: nombre del negocio → WhatsApp → «Probar con un QR, sin Meta». Después, en esta carpeta, `node herramientas/whatsapp-qr.mjs` con la orden que te da el panel, y escanea el QR. Solo pasan los números que pongas detrás de `--permitir`; los demás chats de ese WhatsApp ni se leen. Funciona mientras esa ventana esté abierta. Necesita Node.js 20 o superior: si Terminal dice «command not found: node», instálalo desde [nodejs.org/es/download](https://nodejs.org/es/download) (el instalador para Mac), abre una ventana nueva de Terminal y repite.
+Para probarlo o enseñarlo sin crear la app de Meta, el ordenador hace de móvil: se vincula a un WhatsApp con un QR, como WhatsApp Web. En el panel: nombre del negocio → WhatsApp → «Probar con un QR, sin Meta». Después, Claude te abre la ventana con la orden que te da el panel (o la pegas tú en Terminal) y escaneas el QR. Los días siguientes, doble clic en «Abrir WhatsApp.command». Solo pasan los números que pongas detrás de `--permitir`; los demás chats de ese WhatsApp ni se leen. Funciona mientras esa ventana esté abierta. Necesita Node.js 20 o superior: si Terminal dice «command not found: node», instálalo desde [nodejs.org/es/download](https://nodejs.org/es/download) (el instalador para Mac), abre una ventana nueva de Terminal y repite.
 
 No es la API oficial de WhatsApp: úsalo con un número de pruebas, no con el del negocio. Para el día a día, la vía de Meta de arriba.
 
