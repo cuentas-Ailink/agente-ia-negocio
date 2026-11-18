@@ -46,6 +46,10 @@
  * 3. En Cloudflare, crea el puente con whatsapp-puente.js (instrucciones dentro) y en Meta pon su dirección.
  */
 
+// La versión de este archivo. Si en el repositorio hay una más nueva, el panel lo avisa arriba.
+const VERSION_PANEL = '2026-11-18';
+const ORIGEN_PANEL = 'https://raw.githubusercontent.com/cuentas-Ailink/agente-ia-negocio/main/herramientas/panel.gs';
+
 const MAX_CONVERSACIONES = 80;
 const DIAS_EN_PANEL = 14;
 const DIAS_GUARDADOS = 30;
@@ -99,6 +103,21 @@ function datosResumenes() {
     try { dias[k] = compactar_(JSON.parse(porDia[k].adj.getDataAsString('UTF-8')), k); } catch (e) {}
   });
   return { dias: dias, hechos: hechos_(), marca: marca_(), hoja: urlHoja_() };
+}
+
+/** La versión de este panel y la del repositorio (se mira como mucho cada 6 horas). Sin internet, solo la propia. */
+function versionPanel() {
+  const cache = CacheService.getScriptCache();
+  let nueva = cache.get('version_repo');
+  if (!nueva) {
+    try {
+      const r = UrlFetchApp.fetch(ORIGEN_PANEL, { muteHttpExceptions: true });
+      const m = r.getResponseCode() === 200 && r.getContentText().match(/const VERSION_PANEL = '([\d-]+)'/);
+      nueva = m ? m[1] : '';
+    } catch (e) { nueva = ''; }
+    cache.put('version_repo', nueva || '-', 6 * 3600);
+  }
+  return { mia: VERSION_PANEL, nueva: nueva && nueva !== '-' && nueva > VERSION_PANEL ? nueva : '' };
 }
 
 /** Guarda el nombre y el logo del negocio que enseña el panel. Se guardan en la cuenta, en trozos. */
@@ -1165,6 +1184,8 @@ button.kpi:hover{box-shadow:var(--sombra),0 0 0 1px #cfcfca}
 .persona{box-shadow:0 1px 2px rgba(20,20,20,.04),0 0 0 1px #ecdcc3,0 14px 30px -22px rgba(196,122,22,.55)}
 .persona .t-ic{background:var(--aten-f);color:var(--aten-t)}
 .avisos{padding:6px 8px 8px}
+.actualizar{margin:12px 20px 0;padding:12px 14px;border-radius:12px;background:var(--aten-f);color:var(--aten-t);font-weight:500}
+.actualizar b{color:var(--tinta)}
 .aviso{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 10px;border-radius:12px;transition:background .12s;cursor:pointer}
 .aviso:hover{background:var(--hover)}
 .aviso + .aviso{box-shadow:0 -1px 0 var(--linea)}
@@ -1419,6 +1440,7 @@ textarea:focus{outline:0}
     <div class="pie" id="lado-pie"></div>
   </aside>
   <section class="principal">
+    <div class="actualizar" id="actualizar" hidden></div>
     <header class="top" id="top"></header>
     <div class="vista" id="v-resumen"></div>
     <div class="vista" id="v-correos" hidden>
@@ -2023,6 +2045,15 @@ function pasarAHoja(){
     if (!antes && hojaUrl && vista === 'facturas') pintarFacturas();
   }).catch(function(){ /* sin permiso para hojas todavía: el panel sigue igual */ });
 }
+// Si el repositorio tiene un panel más nuevo, se dice arriba y cómo ponerlo.
+function mirarVersion(){
+  llamar('versionPanel').then(function(v){
+    var caja = $('actualizar'); if (!v.nueva) return;
+    caja.textContent = '';
+    caja.append('Hay una versión nueva del panel. En la app de Claude, en la carpeta del agente, escribe ', el('b',{}, '«actualiza el panel»'), ' y te dice cómo ponerla (3 clics).');
+    caja.hidden = false;
+  }).catch(function(){});
+}
 $('buscar').addEventListener('input', function(e){ busqueda = e.target.value; pintarLista(); });
 
 // ---- Personalizar: nombre y logo del negocio
@@ -2133,6 +2164,7 @@ google.script.url.getLocation(function(loc){
   var p = loc.parameter || {};
   if (p.hilo) ir('correos', p.hilo, false); else ir(p.vista === 'facturas' || p.vista === 'correos' ? p.vista : 'resumen', null, false);
   cargar();
+  mirarVersion();
 });
 </script>
 </body>

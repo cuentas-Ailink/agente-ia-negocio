@@ -58,9 +58,17 @@ Todo lo que es de un negocio concreto vive en `negocio/` (y, si hace falta, en u
 
 ## Si alguien abre esta carpeta para cambiar el agente
 
-Si te piden cambiar el agente (y no procesar correos), trabaja en los archivos y explica qué cambias. Después ejecuta `python3 herramientas/comprobar.py` y arregla lo que diga hasta que salga «Sin errores».
+Si te piden cambiar el agente (y no procesar correos), trabaja en los archivos y explica qué cambias. Después ejecuta `python3 herramientas/comprobar.py` y arregla lo que diga hasta que salga «Sin errores». Si cambias `herramientas/panel.gs`, pon la fecha de hoy en `VERSION_PANEL`: así los paneles instalados avisan de que hay uno nuevo.
 
 ## Si te piden «actualiza el agente»
 
 - Si la carpeta es un clon de git: `git stash` (si hay cambios), `git pull` y `git stash pop`. Si hay conflictos en `negocio/` o `memoria/`, gana lo de la persona; en lo demás, lo nuevo. Después ejecuta `python3 herramientas/comprobar.py` y di en dos líneas qué ha cambiado (`git log` desde la versión anterior).
 - Si no es un clon (la descargaron en ZIP): dile que descargue el ZIP nuevo y copie dentro su `negocio/` y su `memoria/`, o que lo clone (INSTALAR.md, paso 1).
+
+## Si te piden «actualiza el panel» (o el panel avisa de una versión nueva)
+
+El panel vive en la cuenta de Google de la persona y no se actualiza solo. Primero trae la versión nueva (como en «actualiza el agente»). Después copia el archivo al portapapeles con `LC_ALL=en_US.UTF-8 pbcopy < herramientas/panel.gs` (en Mac) y dale estos pasos, numerados y uno por línea:
+
+1. Abre script.google.com con la cuenta del negocio y entra en el proyecto del panel.
+2. Cmd+A, Cmd+V y guardar. Comprueba que las tildes se ven bien.
+3. «Implementar» → «Gestionar implementaciones» → lápiz → Versión «Nueva versión» → «Implementar». Si tiene dos (la del panel y la de WhatsApp), en las dos. La dirección no cambia.
