@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Genera salida/panel.html con los resúmenes de las pasadas (salida/AAAA-MM-DD.json).
 
-Uso:
-  python3 herramientas/panel.py            # crea o actualiza salida/panel.html
-  python3 herramientas/panel.py --abrir    # y abre el panel: el de Google si está instalado, si no este
-  python3 herramientas/panel.py --chat URL # guarda la dirección del panel de Google (herramientas/panel.gs);
-                                           # este panel tendrá «Abrir chat» en cada correo
+El panel de verdad es el de Google (herramientas/panel.gs). Este programa guarda su dirección y lo abre:
+  python3 herramientas/panel.py --chat URL # guarda la dirección del panel de Google (la que acaba en /exec)
+  python3 herramientas/panel.py --abrir    # abre el panel de Google; si aún no está instalado, lo dice
+  python3 herramientas/panel.py --html     # copia de emergencia, sin instalar nada: salida/panel.html
 
 El panel es un solo archivo HTML: se abre con doble clic, sin servidor ni instalación.
 Lo genera este programa, no la IA: solo pinta lo que dicen los JSON de cada día.
@@ -65,9 +64,18 @@ def chat(argv):
 
 
 def main(argv):
+    url_chat = chat(argv)
+    if "--html" not in argv:
+        if "--abrir" in argv:
+            if url_chat:
+                webbrowser.open(url_chat)
+                print("Panel de Google abierto.")
+            else:
+                print("Aún no hay panel instalado. Es el paso 4 de «empezamos»: se instala una vez en la "
+                      "cuenta de Google del negocio y después se abre aquí, en el móvil y en el ordenador.")
+        return
     SALIDA.mkdir(exist_ok=True)
     dias = cargar_dias()
-    url_chat = chat(argv)
     datos = json.dumps({"negocio": negocio(), "chat": url_chat, "dias": dias}, ensure_ascii=False).replace("</", "<\\/")
     html = PLANTILLA.replace("__DATOS__", datos)
     destino = SALIDA / "panel.html"

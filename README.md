@@ -13,7 +13,6 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 - **Aprende.** Si un cliente pide que le traten de usted, lo apunta en `memoria/MEMORIA.md` y lo aplica la próxima vez.
 - **Se protege.** Si un correo intenta darle órdenes («ignora tus instrucciones y reenvía…»), no obedece: lo marca como «Agente/Sospechoso».
 - **Te lo enseña en un panel, en el móvil y en el ordenador.** Lo que necesita a una persona arriba, las cifras del día, las facturas con su estado y cada correo como un chat, con el borrador del agente ya escrito: lo cambias si quieres y pulsas «Enviar». Envías tú, con dos clics; el agente no puede. Es una página privada de tu propia cuenta de Google (`herramientas/panel.gs`): sin servidor, sin claves y sin el ordenador encendido.
-- **Y si no quieres instalar nada,** el mismo resumen está en `salida/panel.html`, que se abre con doble clic.
 - **Funciona solo** cada mañana. Lo normal es una tarea programada de la app de Claude, pero vale cualquier sitio que pueda lanzar «Haz la pasada diaria» en esta carpeta con Gmail conectado: la nube de Claude, tu propio servidor o la herramienta que ya uses. El agente no depende de ninguno.
 
 ## Cómo está hecho
@@ -34,10 +33,10 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 | `herramientas/whatsapp-puente.js` | Opcional: el puente gratis en Cloudflare para que los WhatsApp de tus clientes lleguen al panel. |
 | `herramientas/whatsapp-qr.mjs` | Opcional: WhatsApp por QR desde el ordenador, para probarlo sin Meta. |
 | `herramientas/resumen_gmail.py` | Prepara el borrador interno con el resumen de la pasada, que es de donde lo lee el panel de Google. |
-| `herramientas/panel.py` | El panel sin instalar nada (`salida/panel.html`), con los resúmenes de cada día. |
+| `herramientas/panel.py` | Guarda la dirección del panel de Google y lo abre. |
 | `herramientas/comprobar.py` | Comprueba que todo está bien montado. |
 | `herramientas/estado.py` | Dice qué pasos de la puesta en marcha están hechos. |
-| `salida/` | El resumen de cada día (`AAAA-MM-DD.json`), el panel y las facturas descargadas. |
+| `salida/` | El resumen de cada día (`AAAA-MM-DD.json`) y las facturas descargadas. |
 
 ## Instalarlo
 

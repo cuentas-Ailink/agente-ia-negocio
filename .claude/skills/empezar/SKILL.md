@@ -35,9 +35,9 @@ Si «estado.py» dice que hay algo mal montado, ejecuta `python3 herramientas/co
 
 - Explica en una línea qué va a pasar: «Voy a leer los correos de la bandeja, etiquetarlos y dejar respuestas en borrador. No envío nada ni borro nada».
 - Pide el OK y, con él, usa la skill `pasada-diaria`.
-- Al acabar, abre el panel: `python3 herramientas/panel.py --abrir`. Di qué mirar primero: «Necesita a una persona».
+- Al acabar, si el panel ya está instalado (existe `negocio/chat.txt`), ábrelo con `python3 herramientas/panel.py --abrir` y di qué mirar primero: «Necesita a una persona». Si no, no abras nada: di que ya puede ver las etiquetas y los borradores en Gmail y pasa al paso 4, que es donde se monta el panel. No hay otro panel: no generes ni abras `salida/panel.html`.
 
-## 4. Panel en el móvil y el ordenador (opcional)
+## 4. Panel en el móvil y el ordenador
 
 Explica para qué sirve: «Es tu panel en una página privada de Google: ves el resumen del día y las facturas, y cada correo se abre como un chat para enviar el borrador con un clic. Además, las facturas revisadas van solas a una hoja de Google, lista para contabilidad. Funciona en el móvil, aunque el ordenador esté apagado». Pregunta si ya lo tiene instalado: si es así, solo pide la URL que acaba en /exec. Si lo instaló antes como «Chat del correo», basta con pegar el archivo nuevo encima, ejecutar una vez la función «prepararHoja» (acepta el permiso nuevo y crea la hoja de facturas) y crear una «Nueva versión» («Implementar» → «Gestionar implementaciones» → lápiz): la dirección no cambia.
 
