@@ -42,9 +42,9 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 
 ## Instalarlo
 
-En la app de Claude (Code), pide «Clona https://github.com/cuentas-Ailink/agente-ia-negocio en Documentos», abre esa carpeta y escribe **«empezamos»**. El agente te guía en 5 pasos y te dice en cada uno si ya está hecho: tu negocio, Gmail, la primera pasada, el panel en el móvil y la tarea de cada mañana. Más detalle en [INSTALAR.md](INSTALAR.md).
+En la app de Claude (Code), pide «Clona https://github.com/cuentas-Ailink/agente-ia-negocio en Documentos», abre esa carpeta y escribe **«empezamos»**. El agente te guía en 5 pasos y te dice en cada uno si ya está hecho: tu negocio, Gmail, la primera pasada, tu panel y la tarea de cada mañana. Más detalle en [INSTALAR.md](INSTALAR.md).
 
-## El panel en el móvil y el ordenador
+## Tu panel
 
 Te lo instala Claude en el paso 4 de «empezamos» (o escribe «instala el panel»). Lo crea, lo sube y lo publica en tu cuenta de Google con `herramientas/panel_google.py`, ya con el nombre de tu negocio. Tú solo haces tres cosas, una vez:
 

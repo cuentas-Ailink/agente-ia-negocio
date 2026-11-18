@@ -1,6 +1,6 @@
 ---
 name: empezar
-description: Puesta en marcha guiada del agente, paso a paso (negocio, Gmail, primera pasada, panel en el móvil y tarea de cada mañana; WhatsApp y pasada en la nube, opcionales). Úsala cuando escriban «empezamos», «hola», «¿qué hago?», «configúralo», «ayúdame a instalarlo», «quiero WhatsApp», «quiero la pasada en la nube», o la primera vez que abren la carpeta.
+description: Puesta en marcha guiada del agente, paso a paso (negocio, Gmail, primera pasada, tu panel y tarea de cada mañana; WhatsApp y pasada en la nube, opcionales). Úsala cuando escriban «empezamos», «hola», «¿qué hago?», «configúralo», «ayúdame a instalarlo», «quiero WhatsApp», «quiero la pasada en la nube», o la primera vez que abren la carpeta.
 ---
 
 # Puesta en marcha
@@ -10,7 +10,7 @@ La persona no sabe programar y no tiene que abrir ningún archivo. Tú haces el 
 **Es una conversación guiada, no un informe.** Cada paso empieza con una pregunta o una acción de la persona. Nunca te saltes un paso en silencio ni hagas varios seguidos sin que la persona conteste.
 
 **Cómo se ve (como la puesta en marcha del CRM):**
-- **Lista de pasos visible.** Al empezar, crea la lista de tareas de la app (TodoWrite, o TaskCreate si es la que tienes) con los 5 pasos: «Tu negocio», «Gmail conectado», «Primera pasada», «Panel en el móvil», «Cada mañana, solo». Marca los hechos y pon «en curso» el que toca. Actualízala al acabar cada paso: la persona ve el avance en la app.
+- **Lista de pasos visible.** Al empezar, crea la lista de tareas de la app (TodoWrite, o TaskCreate si es la que tienes) con los 5 pasos: «Tu negocio», «Gmail conectado», «Primera pasada», «Tu panel», «Cada mañana, solo». Marca los hechos y pon «en curso» el que toca. Actualízala al acabar cada paso: la persona ve el avance en la app.
 - **Preguntas con botones.** Cada vez que la persona tenga que elegir o confirmar algo, usa la herramienta de preguntas con opciones (AskUserQuestion), con 2 o 3 opciones cortas y la recomendada primero. Solo si no la tienes, haz la pregunta en el chat con las opciones numeradas.
 - Un paso cada vez. Una sola pregunta por mensaje. Mensajes cortos, sin jerga: nada de «repositorio», «skill», «script», «JSON», «terminal» ni rutas de archivos.
 - Al acabar cada paso, di «Hecho» y cuál es el siguiente.
@@ -44,9 +44,9 @@ Si elige el ejemplo y su Gmail de pruebas está vacío, dile en una línea que s
 - Pide el OK con botones («Hazla ahora» / «Más tarde») y, con él, usa la skill `pasada-diaria`.
 - Al acabar, si el panel ya está instalado (existe `negocio/chat.txt`), ábrelo con `python3 herramientas/panel.py --abrir` y di qué mirar primero: «Necesita a una persona». Si no, no abras nada: di que ya puede ver las etiquetas y los borradores en Gmail y pasa al paso 4, que es donde se monta el panel. No hay otro panel: no generes ni abras `salida/panel.html`.
 
-## 4. Panel en el móvil y el ordenador
+## 4. Tu panel
 
-Explica para qué sirve en 2 líneas: «Es tu panel, en tu cuenta de Google: ves el resumen del día y las facturas, y cada correo se abre como un chat para enviar el borrador con un clic. Funciona en el móvil, aunque el ordenador esté apagado. Lo instalo yo; tú solo pulsas dos botones».
+Explica para qué sirve en 2 líneas: «Es tu panel, en tu cuenta de Google: ves el resumen del día y las facturas, y cada correo se abre como un chat para enviar el borrador con un clic. Lo instalo yo y te lo abro aquí; tú solo pulsas dos botones. Con el mismo enlace lo abres desde cualquier dispositivo».
 
 Pregunta con botones: «¿Te lo instalo ahora?» («Sí, instálalo» / «Más tarde»). Si es más tarde, no insistas: el agente funciona igual con Gmail.
 
@@ -60,7 +60,7 @@ Si ya existe `negocio/panel.json`, el panel ya está instalado: ábrelo con `pyt
 4. **Abrirlo.** `python3 herramientas/panel.py --abrir`. La primera vez Google pide permiso, porque es un panel suyo y nuevo. Dale estos pasos **como lista numerada, uno por línea**: «Revisar permisos» → elige la cuenta del negocio → «Configuración avanzada» → «Ir a Panel del correo» → «Permitir». Es su propio panel: Google avisa igual con todos.
 5. Si al abrirlo sale «Este panel es privado», es que el navegador ha entrado con otra cuenta de Google: que lo abra en un perfil de Chrome (o una ventana privada) con solo la cuenta del negocio. La propia página lo explica.
 
-Cuando lo vea, deja el borrador del resumen como dice el paso 6 de `pasada-diaria` si en esta conversación ya hiciste la pasada y aún no lo dejaste. Dile que lo guarde en marcadores y, en el móvil, que lo abra con la misma cuenta y use «Añadir a pantalla de inicio». El nombre del negocio ya sale arriba. Para poner su logo: que pulse el nombre de arriba a la izquierda (en el móvil, el icono de arriba), «Subir logo» y «Guardar». La hoja de facturas se crea sola y se abre desde «Facturas» → «Abrir hoja de facturas».
+Cuando lo vea, deja el borrador del resumen como dice el paso 6 de `pasada-diaria` si en esta conversación ya hiciste la pasada y aún no lo dejaste. Dile que lo guarde en marcadores. Con ese mismo enlace lo abre desde cualquier dispositivo; en el móvil, si quiere, «Añadir a pantalla de inicio» (es un extra, no un paso). El nombre del negocio ya sale arriba. Para poner su logo: que pulse el nombre de arriba a la izquierda (en el móvil, el icono de arriba), «Subir logo» y «Guardar». La hoja de facturas se crea sola y se abre desde «Facturas» → «Abrir hoja de facturas».
 
 Si no puede usar Node.js o el programa falla dos veces, hay instalación a mano (las instrucciones están al principio de `herramientas/panel.gs`): ofrécete a copiar el archivo con `LC_ALL=en_US.UTF-8 pbcopy < herramientas/panel.gs` y dale esos pasos como lista numerada. Cuando pegue la dirección que acaba en /exec, ejecuta `python3 herramientas/panel.py --chat <URL>`.
 

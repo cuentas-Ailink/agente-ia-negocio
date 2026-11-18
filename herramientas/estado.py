@@ -49,7 +49,7 @@ def pasadas():
 
 def chat():
     url = (leer("negocio/chat.txt") or "").strip()
-    return ("hecho", "Instalado en tu cuenta de Google.") if url else ("falta", "Te lo instalo yo; tú solo pulsas «Permitir» en Google. El resumen en el móvil y enviar con un clic.")
+    return ("hecho", "Instalado en tu cuenta de Google.") if url else ("falta", "Te lo instalo yo y te lo abro; tú solo pulsas «Permitir» en Google. El resumen del día y enviar con un clic.")
 
 
 def rutina():
@@ -65,7 +65,7 @@ def main():
         ("Tu negocio", *negocio()),
         ("Gmail conectado", "claude", "Lo compruebo yo desde la app."),
         ("Primera pasada", *pasadas()),
-        ("Panel en el móvil", *chat()),
+        ("Tu panel", *chat()),
         ("Cada mañana, solo", *rutina()),
     ]
     marca = {"hecho": "\033[32mHecho\033[0m  ", "ejemplo": "\033[33mEjemplo\033[0m", "falta": "\033[33mFalta\033[0m  ", "claude": "·      "}
