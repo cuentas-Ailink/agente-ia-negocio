@@ -49,7 +49,7 @@ def pasadas():
 
 def chat():
     url = (leer("negocio/chat.txt") or "").strip()
-    return ("hecho", "Instalado en tu cuenta de Google.") if url else ("falta", "Opcional, 3 minutos.")
+    return ("hecho", "Instalado en tu cuenta de Google.") if url else ("falta", "3 minutos, una sola vez. Es donde se revisan y se envían las respuestas.")
 
 
 def rutina():
