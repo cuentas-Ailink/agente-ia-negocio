@@ -18,12 +18,12 @@ En **Code**, abre una sesión nueva y elige la carpeta `agente-ia-negocio`. Tien
 
 ## 3. Escribe «empezamos»
 
-El agente te lleva paso a paso y te dice en cada uno si ya está hecho:
+El agente te lleva paso a paso: ves la lista de pasos en la app, cuál está hecho y cuál toca, y en cada decisión te pregunta con botones.
 
 1. **Tu negocio.** Viene preparado con una gestoría de ejemplo. Si quieres el tuyo, le dices a qué se dedica en una frase y te hace como mucho 5 preguntas.
 2. **Gmail.** Comprueba que está conectado. Si no, te dice dónde: **Ajustes → Conectores → Gmail → Conectar**, con la cuenta del negocio (para probar, mejor una cuenta de pruebas).
-3. **La primera pasada.** Ordena la bandeja, revisa las facturas, deja las respuestas en borrador No envía ni borra nada.
-4. **El panel en el móvil y el ordenador** (recomendado, 3 minutos). Te da los pasos para instalarlo en tu cuenta de Google: el resumen del día, las facturas y cada correo como un chat para enviar los borradores.
+3. **La primera pasada.** Ordena la bandeja, revisa las facturas, deja las respuestas en borrador. No envía ni borra nada.
+4. **El panel en el móvil y el ordenador.** Te lo instala él en tu cuenta de Google: tú activas un interruptor y pulsas «Permitir». Es el resumen del día, las facturas y cada correo como un chat para enviar los borradores. Si no tienes Node.js, te abre la página para instalarlo (siguiente, siguiente).
 5. **Cada mañana, solo.** Te dice cómo crear la tarea programada en la app de Claude, con el texto «Haz la pasada diaria».
 
 ¿Quieres que la pasada se haga aunque el ordenador esté apagado? Escribe «quiero la pasada en la nube» (hace falta una cuenta de GitHub), o úsalo en tu propio servidor: basta con lanzar «Haz la pasada diaria» en esta carpeta cada mañana. ¿Quieres WhatsApp? Escribe «quiero WhatsApp». Para probarlo, un QR en 5 minutos con un WhatsApp de pruebas; para el día a día con clientes, la vía oficial de Meta. En los dos casos los mensajes llegan al mismo panel.

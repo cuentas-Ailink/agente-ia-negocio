@@ -6,13 +6,17 @@
  * Es una página privada de Google Apps Script: solo la abre la cuenta de Gmail del negocio.
  * No hace falta Google Cloud, ni servidor, ni permisos que caduquen.
  *
- * Cómo instalarlo (una vez, unos 3 minutos), con la cuenta de Gmail del negocio:
+ * Lo normal es que lo instale Claude solo: escribe «empezamos» (o «instala el panel») en la carpeta del agente.
+ * Lo crea, lo sube y lo publica en tu cuenta (herramientas/panel_google.py). Lo de abajo es por si lo haces a mano.
+ *
+ * Cómo instalarlo a mano (una vez, unos 3 minutos), con la cuenta de Gmail del negocio:
  * 1. Abre script.google.com → «Nuevo proyecto». Ponle de nombre «Panel del correo».
  *    Borra lo que haya y pega este archivo entero.
  * 2. A la izquierda, «Servicios» (+) → «Gmail API» → Añadir.
  * 3. Arriba a la derecha, «Implementar» → «Nueva implementación» → tipo «Aplicación web».
  *    - Ejecutar como: «Yo».
- *    - Quién tiene acceso: «Solo yo».
+ *    - Quién tiene acceso: «Solo yo» (o «Cualquier usuario con una cuenta de Google»: el panel sigue siendo
+ *      solo tuyo, a cualquier otra cuenta le sale «Este panel es privado» y no puede leer ni enviar nada).
  *    Pulsa «Implementar» y acepta los permisos (es tu propio script).
  * 4. Copia la URL que termina en /exec y dásela al agente (o: python3 herramientas/panel.py --chat <URL>).
  *    Guárdala en marcadores; en el móvil, «Añadir a pantalla de inicio» y se abre como una app.
@@ -47,7 +51,7 @@
  */
 
 // La versión de este archivo. Si en el repositorio hay una más nueva, el panel lo avisa arriba.
-const VERSION_PANEL = '2026-11-18.2';
+const VERSION_PANEL = '2026-11-18.4';
 const ORIGEN_PANEL = 'https://raw.githubusercontent.com/cuentas-Ailink/agente-ia-negocio/main/herramientas/panel.gs';
 
 const MAX_CONVERSACIONES = 80;
@@ -60,7 +64,7 @@ function doGet(e) {
   if (p.clave != null && p.cola != null) return colaQR_(String(p.clave), String(p.numero || ''));
   if (p.clave != null) return ContentService.createTextOutput(respuestaPuente_(String(p.clave)));
   // La implementación de WhatsApp está abierta a «Cualquier usuario»: el panel solo se enseña a la cuenta del negocio.
-  if (!esLaCuenta_()) return HtmlService.createHtmlOutput('<p style="font-family:sans-serif">Esta página es privada.</p>');
+  if (!esLaCuenta_()) return paginaPrivada_();
   return HtmlService.createHtmlOutput(PAGINA)
     .setTitle('Panel del correo')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, viewport-fit=cover');
@@ -72,10 +76,41 @@ function esLaCuenta_() {
   return !!quien && quien === Session.getEffectiveUser().getEmail().toLowerCase();
 }
 
+/**
+ * Todo lo que llama la página pasa por aquí: aunque la implementación esté abierta a «Cualquier usuario»,
+ * otra cuenta no puede leer ni enviar nada. (Las tareas del editor, como prepararHoja, las ejecuta la propia cuenta.)
+ */
+function soloLaCuenta_() {
+  if (!esLaCuenta_()) throw new Error('Este panel es privado: ábrelo con la cuenta de Google del negocio.');
+}
+
+/** Lo que ve quien abre el panel con otra cuenta (o sin iniciar sesión). Dice con qué cuenta abrirlo. */
+function paginaPrivada_() {
+  const suya = Session.getEffectiveUser().getEmail();
+  const i = suya.indexOf('@');
+  const pista = suya.slice(0, Math.min(3, i)) + '…' + suya.slice(i);
+  const html = '<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<div style="font:16px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;color:#1d1d1f;max-width:440px;margin:12vh auto;padding:0 20px">' +
+    '<h1 style="font-size:22px;margin:0 0 12px">Este panel es privado</h1>' +
+    '<p style="margin:0 0 12px">Es el panel del correo de la cuenta <b>' + pista + '</b>. Ahora estás entrando con otra cuenta de Google (o sin iniciar sesión).</p>' +
+    '<p style="margin:0 0 6px"><b>Si es tu panel</b>, ábrelo con esa cuenta:</p>' +
+    '<ul style="margin:0 0 12px;padding-left:20px"><li>En el ordenador: en un perfil de Chrome (o una ventana privada) donde solo esté esa cuenta.</li>' +
+    '<li>En el móvil: en Chrome o Safari, con esa cuenta iniciada.</li></ul>' +
+    '<p style="margin:0;color:#6e6e73">Si no es tuyo, aquí no hay nada que ver: no se puede leer ni enviar nada desde otra cuenta.</p></div>';
+  return HtmlService.createHtmlOutput(html).setTitle('Panel del correo')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+/** Lo que deja Claude al instalar el panel él solo (instalacion.gs): el nombre del negocio y la dirección de WhatsApp. */
+function instalacion_() {
+  return typeof INSTALACION !== 'undefined' && INSTALACION ? INSTALACION : {};
+}
+
 // ---------------------------------------------------------------- el resumen de cada pasada
 
 /** Los resúmenes que deja el agente (uno por día, el más reciente primero) y lo marcado como hecho. */
 function datosResumenes() {
+  soloLaCuenta_();
   const porDia = {}, sobran = [];
   let pagina;
   do {
@@ -107,6 +142,7 @@ function datosResumenes() {
 
 /** La versión de este panel y la del repositorio (se mira como mucho cada 6 horas). Sin internet, solo la propia. */
 function versionPanel() {
+  soloLaCuenta_();
   const cache = CacheService.getScriptCache();
   let nueva = cache.get('version_repo');
   if (!nueva) {
@@ -122,6 +158,7 @@ function versionPanel() {
 
 /** Guarda el nombre y el logo del negocio que enseña el panel. Se guardan en la cuenta, en trozos. */
 function guardarMarca(nombre, logo) {
+  soloLaCuenta_();
   nombre = String(nombre || '').trim().slice(0, 60);
   logo = String(logo || '');
   if (logo && !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(logo)) throw new Error('El logo tiene que ser una imagen PNG, JPG o WebP.');
@@ -142,11 +179,12 @@ function marca_() {
   const n = Number(p.getProperty('marca_trozos') || 0);
   let logo = '';
   for (let i = 0; i < n; i++) logo += p.getProperty('marca_logo_' + i) || '';
-  return { nombre: p.getProperty('marca_nombre') || '', logo: logo };
+  return { nombre: p.getProperty('marca_nombre') || instalacion_().negocio || '', logo: logo };
 }
 
 /** Marca (o desmarca) como hecho algo de «Necesita a una persona». Se guarda en la cuenta. */
 function marcarHecho(id, si) {
+  soloLaCuenta_();
   const lista = hechos_().filter(x => x !== id);
   if (si) lista.push(String(id));
   PropertiesService.getUserProperties().setProperty('hechos', JSON.stringify(lista.slice(-400)));
@@ -191,6 +229,7 @@ const COL_CORREO = 14, COL_CLAVE = 15;
  * Solo añade las nuevas y actualiza las que han cambiado; lo que escribas tú en otras columnas no se toca.
  */
 function sincronizarHoja(lista) {
+  soloLaCuenta_();
   const hoja = hojaFacturas_();
   const yo = Session.getEffectiveUser().getEmail();
   const ultima = hoja.getLastRow();
@@ -397,6 +436,7 @@ function comparable_(v) {
 
 /** Las conversaciones de la bandeja que ya tienen una etiqueta «Agente/…». */
 function datosBandeja() {
+  soloLaCuenta_();
   const yo = Session.getEffectiveUser().getEmail().toLowerCase();
   const etiquetas = GmailApp.getUserLabels().map(l => l.getName()).filter(n => n.indexOf('Agente/') === 0);
   const hilos = {}, nombresPorHilo = {};
@@ -434,6 +474,7 @@ function datosBandeja() {
 
 /** Una conversación entera, con el borrador del agente si lo hay. */
 function datosHilo(id) {
+  soloLaCuenta_();
   const yo = Session.getEffectiveUser().getEmail().toLowerCase();
   const hilo = GmailApp.getThreadById(id);
   if (!hilo) throw new Error('No encuentro esta conversación. Puede que se haya borrado.');
@@ -485,11 +526,13 @@ function datosHilo(id) {
 
 /** Guarda el texto como borrador de respuesta en la conversación (sin enviar). */
 function guardarBorrador(id, texto) {
+  soloLaCuenta_();
   return { borradorId: escribirBorrador_(id, texto) };
 }
 
 /** Guarda y envía. Solo se llama cuando una persona ha pulsado «Enviar» y lo ha confirmado. */
 function enviar(id, texto) {
+  soloLaCuenta_();
   const hilo = GmailApp.getThreadById(id);
   const tel = hilo ? telefonoDeHilo_(hilo.getMessages()) : '';
   if (tel) return enviarPorWhatsApp_(id, tel, texto);
@@ -531,15 +574,17 @@ function conectado_(a) { return a.qr ? !!a.clave : !!(a.token && a.numero); }
 
 /** Lo que enseña «Tu negocio → WhatsApp». El token nunca sale de aquí. */
 function datosWhatsApp() {
+  soloLaCuenta_();
   const a = ajustesWhatsApp_();
   return {
     conectado: conectado_(a), qr: a.qr, numero: a.mostrar, id: a.numero, clave: a.clave, acuse: a.acuse,
-    dir: a.dir, panel: a.dir && a.clave ? a.dir + '?clave=' + a.clave : ''
+    dir: a.dir, panel: a.dir && a.clave ? a.dir + '?clave=' + a.clave : '', sugerida: instalacion_().whatsapp || ''
   };
 }
 
 /** Comprueba el token y el número con Meta y los guarda. Sin token nuevo, deja el que había. */
 function guardarWhatsApp(token, numero, acuse) {
+  soloLaCuenta_();
   const props = PropertiesService.getScriptProperties();
   const a = ajustesWhatsApp_();
   token = String(token || '').trim() || a.token;
@@ -555,6 +600,7 @@ function guardarWhatsApp(token, numero, acuse) {
     wa_clave: a.clave || Utilities.getUuid().replace(/-/g, '').slice(0, 24),
     wa_mostrar: [d.display_phone_number, d.verified_name].filter(Boolean).join(' · ')
   });
+  puenteInstalado_();
   return datosWhatsApp();
 }
 
@@ -564,18 +610,28 @@ function guardarWhatsApp(token, numero, acuse) {
  * No es la API oficial: solo para probar y enseñar, con un número de pruebas.
  */
 function activarQR(acuse) {
+  soloLaCuenta_();
   const a = ajustesWhatsApp_();
   PropertiesService.getScriptProperties().setProperties({
     wa_modo: 'qr', wa_acuse: String(acuse == null ? a.acuse : acuse).trim().slice(0, 500),
     wa_clave: a.clave || Utilities.getUuid().replace(/-/g, '').slice(0, 24),
     wa_mostrar: 'Modo prueba por QR'
   });
+  puenteInstalado_();
   return datosWhatsApp();
 }
 
 function quitarWhatsApp() {
+  soloLaCuenta_();
   ['wa_modo', 'wa_token', 'wa_numero', 'wa_mostrar', 'wa_dir', 'wa_cola'].forEach(k => PropertiesService.getScriptProperties().deleteProperty(k));
   return datosWhatsApp();
+}
+
+/** Si Claude ya publicó la dirección pública de WhatsApp al instalar, se guarda sola (sin pegar nada). */
+function puenteInstalado_() {
+  const dir = instalacion_().whatsapp;
+  if (!dir || ajustesWhatsApp_().dir) return;
+  try { guardarPuente(dir); } catch (e) { /* se queda para pegarla a mano */ }
 }
 
 /** Lo que contesta este script cuando el puente (o el panel) comprueba que llega. */
@@ -590,6 +646,7 @@ function respuestaPuente_(clave) {
  * sesión (si es la del panel, «Solo yo», Google pide entrar y no vale).
  */
 function guardarPuente(dir) {
+  soloLaCuenta_();
   const a = ajustesWhatsApp_();
   if (!a.clave) throw new Error('Primero conecta WhatsApp, arriba.');
   dir = String(dir || '').trim().replace(/[?#].*$/, '');
@@ -2096,7 +2153,7 @@ function pintarWhatsApp(w){
   $('wa-acuse').value = w.acuse || ''; $('wa-numero').value = w.id || '';
   $('wa-token').placeholder = w.conectado ? 'Guardado. Pega otro solo para cambiarlo' : 'EAAG…';
   $('wa-meta').hidden = !w.clave;
-  $('wa-dir').value = w.dir || ''; $('wa-dir-aviso').textContent = w.dir ? 'Comprobada.' : ''; $('wa-dir-aviso').className = 'estado';
+  $('wa-dir').value = w.dir || w.sugerida || ''; $('wa-dir-aviso').textContent = w.dir ? 'Comprobada.' : (w.sugerida ? 'Ya está puesta: pulsa «Comprobar».' : ''); $('wa-dir-aviso').className = 'estado';
   $('wa-panel').textContent = w.panel || 'Aparece cuando guardes la dirección del paso 1.';
   $('wa-clave').textContent = w.clave || '';
   $('wa-orden').textContent = w.panel ? 'node herramientas/whatsapp-qr.mjs --panel "' + w.panel + '" --permitir 34600000000' : 'Aparece cuando guardes la dirección del paso 1.';

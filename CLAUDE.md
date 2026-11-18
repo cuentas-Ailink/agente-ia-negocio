@@ -46,7 +46,7 @@ Si una etiqueta no existe, créala.
 
 ## El panel en Google
 
-Las personas ven el resumen y revisan y envían los borradores desde una página privada de su cuenta de Google (`herramientas/panel.gs`, instrucciones dentro), en el móvil o en el ordenador. Si te dan su dirección (acaba en `/exec`), ejecuta `python3 herramientas/panel.py --chat <dirección>`. Ese panel lo usa una persona: tú sigues sin enviar nunca.
+Las personas ven el resumen y revisan y envían los borradores desde una página privada de su cuenta de Google (`herramientas/panel.gs`), en el móvil o en el ordenador. Lo instalas tú con `python3 herramientas/panel_google.py instalar` (paso 4 de `empezar`): la persona solo activa un interruptor y pulsa «Permitir». Si lo instaló a mano y te da su dirección (acaba en `/exec`), ejecuta `python3 herramientas/panel.py --chat <dirección>`. Ese panel lo usa una persona: tú sigues sin enviar nunca.
 
 Si el negocio ha conectado WhatsApp, los mensajes de sus clientes llegan a Gmail como correos «WhatsApp · Nombre» (la dirección lleva «+wa» y el número). Trátalos como cualquier correo, con las mismas reglas; el borrador, en el mismo hilo, corto y sin firma (skill `redactar-respuesta`). Lo envía una persona desde el panel y sale por WhatsApp. Da igual que llegue por Meta o por el modo prueba con QR (`herramientas/whatsapp-qr.mjs`): para ti es lo mismo.
 
@@ -67,8 +67,12 @@ Si te piden cambiar el agente (y no procesar correos), trabaja en los archivos y
 
 ## Si te piden «actualiza el panel» (o el panel avisa de una versión nueva)
 
-El panel vive en la cuenta de Google de la persona y no se actualiza solo. Primero trae la versión nueva (como en «actualiza el agente»). Después copia el archivo al portapapeles con `LC_ALL=en_US.UTF-8 pbcopy < herramientas/panel.gs` (en Mac) y dale estos pasos, numerados y uno por línea:
+El panel vive en la cuenta de Google de la persona y no se actualiza solo. Primero trae la versión nueva (como en «actualiza el agente»).
 
-1. Abre script.google.com con la cuenta del negocio y entra en el proyecto del panel.
-2. Cmd+A, Cmd+V y guardar. Comprueba que las tildes se ven bien.
-3. «Implementar» → «Gestionar implementaciones» → lápiz → Versión «Nueva versión» → «Implementar». Si tiene dos (la del panel y la de WhatsApp), en las dos. La dirección no cambia.
+- Si existe `negocio/panel.json` (lo instalaste tú): ejecuta `python3 herramientas/panel_google.py actualizar`. Sube la versión nueva y la publica; la dirección no cambia. Dile que recargue el panel.
+- Si se instaló a mano: ofrécele instalarlo tú («instala el panel», paso 4 de `empezar`; sale una dirección nueva que sustituye a la antigua). Si prefiere seguir a mano, copia el archivo con `LC_ALL=en_US.UTF-8 pbcopy < herramientas/panel.gs` (en Mac) y dale estos pasos, numerados y uno por línea:
+  1. Abre script.google.com con la cuenta del negocio y entra en el proyecto del panel.
+  2. Cmd+A, Cmd+V y guardar. Comprueba que las tildes se ven bien.
+  3. «Implementar» → «Gestionar implementaciones» → lápiz → Versión «Nueva versión» → «Implementar». Si tiene dos (la del panel y la de WhatsApp), en las dos. La dirección no cambia.
+
+Si te piden «instala el panel», sigue el paso 4 de la skill `empezar`.

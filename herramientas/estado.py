@@ -25,7 +25,7 @@ def negocio():
     if "{{" in texto:
         return "falta", f"{nombre}: quedan datos por rellenar."
     if "<!-- ejemplo" in texto.lower():
-        return "ejemplo", f"{nombre} (el negocio de ejemplo). Puedes probar con él o adaptarlo al tuyo."
+        return "ejemplo", f"{nombre} (el negocio de ejemplo). Falta elegir: probar con él o adaptarlo al tuyo."
     return "hecho", nombre
 
 
@@ -49,7 +49,7 @@ def pasadas():
 
 def chat():
     url = (leer("negocio/chat.txt") or "").strip()
-    return ("hecho", "Instalado en tu cuenta de Google.") if url else ("falta", "Recomendado, 3 minutos y una sola vez: el resumen en el móvil y enviar con un clic.")
+    return ("hecho", "Instalado en tu cuenta de Google.") if url else ("falta", "Te lo instalo yo; tú solo pulsas «Permitir» en Google. El resumen en el móvil y enviar con un clic.")
 
 
 def rutina():

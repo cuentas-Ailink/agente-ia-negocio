@@ -7,7 +7,7 @@ description: Adapta el agente a otro negocio escribiendo negocio/negocio.md y ne
 
 El agente no se toca: solo cambia la carpeta `negocio/`.
 
-1. **Entiende el negocio.** Si la persona solo ha dado una frase («una clínica dental en Sevilla»), pregúntale lo que falte, como mucho 5 preguntas y de una en una:
+1. **Entiende el negocio.** Si la persona solo ha dado una frase («una clínica dental en Sevilla»), pregúntale lo que falte, como mucho 5 preguntas y de una en una (cuando haya opciones, como tú o usted, con la herramienta de preguntas con botones):
    1. Nombre del negocio y ciudad.
    2. Qué correos le llegan más (y qué le gustaría que se hiciera con cada uno).
    3. Cómo quiere sonar (tú o usted, cercano o formal) y la firma.

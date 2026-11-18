@@ -29,7 +29,8 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 | `.claude/agents/` | Los subagentes: `clasificador`, `revisor-documentos` y `redactor`. |
 | `.claude/settings.json` | Bloquea enviar, responder, reenviar y borrar correos. |
 | `herramientas/revisar_factura.py` | Hace las cuentas de cada factura. |
-| `herramientas/panel.gs` | El panel en Google: resumen, facturas y cada correo como un chat para revisar y enviar los borradores. Se instala una vez en tu cuenta de Google (las instrucciones están dentro). |
+| `herramientas/panel.gs` | El panel en Google: resumen, facturas y cada correo como un chat para revisar y enviar los borradores. |
+| `herramientas/panel_google.py` | Instala, actualiza y publica el panel en tu cuenta de Google, sin copiar ni pegar (lo usa Claude). |
 | `herramientas/whatsapp-puente.js` | Opcional: el puente gratis en Cloudflare para que los WhatsApp de tus clientes lleguen al panel. |
 | `herramientas/whatsapp-qr.mjs` | Opcional: WhatsApp por QR desde el ordenador, para probarlo sin Meta. |
 | `Abrir WhatsApp.command` | Doble clic para volver a conectar el WhatsApp por QR otro día. |
@@ -43,15 +44,17 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 
 En la app de Claude (Code), pide «Clona https://github.com/cuentas-Ailink/agente-ia-negocio en Documentos», abre esa carpeta y escribe **«empezamos»**. El agente te guía en 5 pasos y te dice en cada uno si ya está hecho: tu negocio, Gmail, la primera pasada, el panel en el móvil y la tarea de cada mañana. Más detalle en [INSTALAR.md](INSTALAR.md).
 
-## El panel en el móvil y el ordenador (recomendado, 3 minutos)
+## El panel en el móvil y el ordenador
 
-1. Con la cuenta de Gmail del negocio, abre [script.google.com](https://script.google.com) → «Nuevo proyecto», llámalo «Panel del correo» y pega `herramientas/panel.gs` entero.
-2. «Servicios» (+) → «Gmail API» → Añadir.
-3. Arriba, elige la función «prepararHoja» y pulsa «Ejecutar». Acepta los permisos (es tu propio script). Crea la hoja «Facturas revisadas» en tu Drive.
-4. «Implementar» → «Nueva implementación» → «Aplicación web». Ejecutar como **Yo**; quién tiene acceso: **Solo yo**.
-5. Copia la URL que acaba en `/exec` y pégasela a Claude: «este es el panel: URL». Él ejecuta `python3 herramientas/panel.py --chat URL`.
+Te lo instala Claude en el paso 4 de «empezamos» (o escribe «instala el panel»). Lo crea, lo sube y lo publica en tu cuenta de Google con `herramientas/panel_google.py`, ya con el nombre de tu negocio. Tú solo haces tres cosas, una vez:
 
-Guárdala en marcadores y, en el móvil, «Añadir a pantalla de inicio»: se abre como una app. Para poner tu logo y el nombre de tu negocio, pulsa el nombre de arriba a la izquierda. Solo tu cuenta puede abrir esa página. El resumen de cada pasada lo deja el agente en un borrador interno llamado «Agente · resumen AAAA-MM-DD», que no se envía nunca; el panel guarda los últimos 30 días.
+1. Instalar [Node.js](https://nodejs.org/es/download) si no lo tienes (el instalador para Mac: siguiente, siguiente).
+2. Activar «API de Google Apps Script» en [script.google.com/home/usersettings](https://script.google.com/home/usersettings), con la cuenta del negocio.
+3. Pulsar «Permitir» en Google cuando se abra el navegador, y otra vez la primera vez que abres el panel («Configuración avanzada» → «Ir a Panel del correo» → «Permitir»: es tu propio panel).
+
+Si lo prefieres a mano, las instrucciones están al principio de `herramientas/panel.gs`. Para actualizarlo cuando el panel avise de una versión nueva, escribe «actualiza el panel».
+
+Guárdala en marcadores y, en el móvil, «Añadir a pantalla de inicio»: se abre como una app. Para poner tu logo y el nombre de tu negocio, pulsa el nombre de arriba a la izquierda. Solo tu cuenta puede usarlo: si alguien lo abre con otra cuenta de Google, ve «Este panel es privado» y no puede leer ni enviar nada. El resumen de cada pasada lo deja el agente en un borrador interno llamado «Agente · resumen AAAA-MM-DD», que no se envía nunca; el panel guarda los últimos 30 días.
 
 Las facturas revisadas pasan solas a la hoja de Google «Facturas revisadas» (fecha, NIF, base, IVA, retención, total y estado), con una pestaña «Por cliente». Se abre desde «Facturas» → «Abrir hoja de facturas» y se descarga en CSV o Excel para el programa de contabilidad.
 
