@@ -2,13 +2,19 @@
 
 Son tres pasos. No hace falta programar ni abrir ningún archivo: a partir del tercero te guía el propio agente.
 
-## 1. Descarga la carpeta
+## 1. Clónalo con Claude
 
-En GitHub, botón **Code → Download ZIP**. Descomprímela en el Escritorio o en Documentos.
+Abre la app de Claude, ve a **Code**, elige tu carpeta **Documentos** y pega esto:
 
-## 2. Ábrela en la app de Claude
+> Clona https://github.com/cuentas-Ailink/agente-ia-negocio aquí, en Documentos.
 
-Abre la app de Claude, ve a **Code** y elige la carpeta que acabas de descomprimir. Con el plan Pro basta: no hace falta ninguna clave ni pagar aparte.
+Claude lo descarga en la carpeta `agente-ia-negocio`, igual que lo tenemos nosotros. Si el Mac te pide instalar las herramientas de desarrollo, acepta (es de Apple y tarda unos minutos) y vuelve a pegarlo. Con el plan Pro basta: no hace falta ninguna clave ni pagar aparte.
+
+¿Prefieres no clonar? En GitHub, **Code → Download ZIP** y descomprímelo en Documentos.
+
+## 2. Ábrelo en la app de Claude
+
+En **Code**, abre una sesión nueva y elige la carpeta `agente-ia-negocio`. Tiene que ser esa carpeta, no Documentos: es la que trae las instrucciones del agente.
 
 ## 3. Escribe «empezamos»
 
@@ -23,6 +29,8 @@ El agente te lleva paso a paso y te dice en cada uno si ya está hecho:
 ¿Quieres que la pasada se haga aunque el ordenador esté apagado? Escribe «quiero la pasada en la nube» (hace falta una cuenta de GitHub), o úsalo en tu propio servidor: basta con lanzar «Haz la pasada diaria» en esta carpeta cada mañana. ¿Quieres WhatsApp? Escribe «quiero WhatsApp». Para probarlo, un QR en 5 minutos con un WhatsApp de pruebas; para el día a día con clientes, la vía oficial de Meta. En los dos casos los mensajes llegan al mismo panel.
 
 ¿Lo dejas a medias? Otro día escribe «empezamos» y sigue donde lo dejaste.
+
+**Para actualizarlo** cuando saquemos mejoras, escribe en la carpeta «actualiza el agente». Si lo clonaste, Claude trae los cambios con git y respeta lo tuyo (tu negocio, tu memoria y tus pasadas).
 
 ## Si algo no va
 

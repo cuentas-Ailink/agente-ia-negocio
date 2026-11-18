@@ -59,3 +59,8 @@ Todo lo que es de un negocio concreto vive en `negocio/` (y, si hace falta, en u
 ## Si alguien abre esta carpeta para cambiar el agente
 
 Si te piden cambiar el agente (y no procesar correos), trabaja en los archivos y explica qué cambias. Después ejecuta `python3 herramientas/comprobar.py` y arregla lo que diga hasta que salga «Sin errores».
+
+## Si te piden «actualiza el agente»
+
+- Si la carpeta es un clon de git: `git stash` (si hay cambios), `git pull` y `git stash pop`. Si hay conflictos en `negocio/` o `memoria/`, gana lo de la persona; en lo demás, lo nuevo. Después ejecuta `python3 herramientas/comprobar.py` y di en dos líneas qué ha cambiado (`git log` desde la versión anterior).
+- Si no es un clon (la descargaron en ZIP): dile que descargue el ZIP nuevo y copie dentro su `negocio/` y su `memoria/`, o que lo clone (INSTALAR.md, paso 1).

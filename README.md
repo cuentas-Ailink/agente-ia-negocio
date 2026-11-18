@@ -40,7 +40,7 @@ Viene montado para una gestoría de ejemplo (Gestoría Arcos) y se adapta a cual
 
 ## Instalarlo
 
-Descarga la carpeta, ábrela en la app de Claude (Code) y escribe **«empezamos»**. El agente te guía en 5 pasos y te dice en cada uno si ya está hecho: tu negocio, Gmail, la primera pasada, el panel en el móvil y la tarea de cada mañana. Más detalle en [INSTALAR.md](INSTALAR.md).
+En la app de Claude (Code), pide «Clona https://github.com/cuentas-Ailink/agente-ia-negocio en Documentos», abre esa carpeta y escribe **«empezamos»**. El agente te guía en 5 pasos y te dice en cada uno si ya está hecho: tu negocio, Gmail, la primera pasada, el panel en el móvil y la tarea de cada mañana. Más detalle en [INSTALAR.md](INSTALAR.md).
 
 ## El panel en el móvil y el ordenador (opcional, 3 minutos)
 
