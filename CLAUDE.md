@@ -44,9 +44,14 @@ Todas cuelgan de «Agente/»: una por cada tipo de la tabla del negocio, más do
 
 Si una etiqueta no existe, créala.
 
-## El panel en Google
+## El panel
 
-Las personas ven el resumen y revisan y envían los borradores desde una página privada de su cuenta de Google (`herramientas/panel.gs`, instrucciones dentro), en el móvil o en el ordenador. Si te dan su dirección (acaba en `/exec`), ejecuta `python3 herramientas/panel.py --chat <dirección>`. Ese panel lo usa una persona: tú sigues sin enviar nunca.
+Las personas ven el resumen, las facturas y cada correo con su respuesta escrita en un panel. Hay uno solo, con el mismo diseño en dos sitios:
+
+- **En el ordenador, sin instalar nada:** `salida/panel.html`, que pinta `python3 herramientas/panel.py` con los resúmenes de cada pasada. Si te piden «abre el panel», ejecuta `python3 herramientas/panel.py --abrir`. Desde ahí cada respuesta se abre en Gmail, ya escrita, y la envía la persona.
+- **También en el móvil (opcional):** una página privada de su cuenta de Google (`herramientas/panel.gs`, instrucciones dentro) que además envía con un clic, pasa las facturas a una hoja de Google y conecta WhatsApp. Si te dan su dirección (acaba en `/exec`), ejecuta `python3 herramientas/panel.py --chat <dirección>`; desde entonces «--abrir» abre ese.
+
+Los usa una persona: tú sigues sin enviar nunca.
 
 Si el negocio ha conectado WhatsApp, los mensajes de sus clientes llegan a Gmail como correos «WhatsApp · Nombre» (la dirección lleva «+wa» y el número). Trátalos como cualquier correo, con las mismas reglas; el borrador, en el mismo hilo, corto y sin firma (skill `redactar-respuesta`). Lo envía una persona desde el panel y sale por WhatsApp. Da igual que llegue por Meta o por el modo prueba con QR (`herramientas/whatsapp-qr.mjs`): para ti es lo mismo.
 

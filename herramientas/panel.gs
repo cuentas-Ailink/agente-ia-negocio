@@ -47,7 +47,7 @@
  */
 
 // La versión de este archivo. Si en el repositorio hay una más nueva, el panel lo avisa arriba.
-const VERSION_PANEL = '2026-11-18.2';
+const VERSION_PANEL = '2026-11-18.3';
 const ORIGEN_PANEL = 'https://raw.githubusercontent.com/cuentas-Ailink/agente-ia-negocio/main/herramientas/panel.gs';
 
 const MAX_CONVERSACIONES = 80;
@@ -1571,6 +1571,8 @@ function saludo(){ var h = new Date().getHours(); return h >= 6 && h < 14 ? 'Bue
 var vista = 'resumen', actual = null, original = '';
 var convs = null, dias = {}, fechas = [], dia = null, hechos = {};
 var verTodos = false, busqueda = '', filtroFact = 'todas', marca = { nombre:'', logo:'' }, hojaUrl = '';
+// En el ordenador, sin instalar nada (herramientas/panel.py): se ve igual, pero se envía desde Gmail.
+var LOCAL = !!window.PANEL_LOCAL;
 var porId = {};
 function porContestar(c){ return c.borrador || (!c.ultimoMio && !c.sospechoso); }
 function pendientes(){ return (convs || []).filter(porContestar).length; }
@@ -1635,7 +1637,7 @@ function pintarMarco(){
   var pie = $('lado-pie'); pie.innerHTML = '';
   if (d && !d.provisional) pie.append(el('div',{class:'k'}, el('span',{class:'v'}), 'Agente activo'),
     el('p',{}, 'Última pasada: ' + (esHoy(fechas[0]) ? 'hoy' : fechaLarga(fechas[0]).toLowerCase()) + (dias[fechas[0]].hora ? ' a las ' + dias[fechas[0]].hora : '') + '. Nunca envía: envías tú.'));
-  else pie.append(el('div',{class:'k'}, 'Envías tú'), el('p',{}, 'El agente deja los borradores; tú los revisas y los envías desde aquí.'));
+  else pie.append(el('div',{class:'k'}, 'Envías tú'), el('p',{}, LOCAL ? 'El agente deja los borradores; tú los revisas y los envías desde Gmail.' : 'El agente deja los borradores; tú los revisas y los envías desde aquí.'));
   // Barra de arriba
   var top = $('top'); top.innerHTML = '';
   var titulo = {resumen:'Resumen', correos:'Correos', facturas:'Facturas'}[vista];
@@ -1680,9 +1682,9 @@ function pintarPrimeraVez(cuerpo){
     el('ol',{},
       el('li',{}, 'En la app de Claude, pestaña Code, abre la carpeta del agente.'),
       el('li',{}, 'Escribe ', el('b',{}, '«haz la pasada»'), '. Tarda unos minutos y no envía nada.'),
-      el('li',{}, 'Cuando termine, vuelve aquí y pulsa «Ya está».')),
+      el('li',{}, LOCAL ? 'Cuando termine, Claude te abre el panel con todo.' : 'Cuando termine, vuelve aquí y pulsa «Ya está».')),
     el('div',{class:'fila-b'},
-      el('button',{class:'boton negro', onclick:function(){ cargar(); }}, 'Ya está'),
+      LOCAL ? null : el('button',{class:'boton negro', onclick:function(){ cargar(); }}, 'Ya está'),
       el('button',{class:'boton', onclick:abrirPersonalizar}, 'Poner mi logo'))));
 }
 function pintarResumen(){
@@ -1832,7 +1834,7 @@ function pintarFacturas(){
   cuerpo.append(el('div',{class:'cabeza'}, el('div',{},
     el('h1',{}, 'Facturas'),
     el('div',{class:'sub'}, d && !d.provisional ? fechaLarga(dia) + ' · revisadas con un programa que hace las cuentas' : 'Aparecen cuando el agente deja el resumen de su pasada.')),
-    hojaUrl ? el('div',{class:'acciones-cab'}, el('a',{class:'boton', href:hojaUrl, target:'_blank', rel:'noopener', title:'Todas las facturas en una hoja de Google, lista para contabilidad'}, ico('hoja'), 'Abrir hoja de facturas')) : null));
+    hojaUrl ? el('div',{class:'acciones-cab'}, el('a',{class:'boton', href:hojaUrl, target:'_blank', rel:'noopener', title:'Todas las facturas en una hoja de Google, lista para contabilidad'}, ico('hoja'), LOCAL ? 'Descargar facturas (Excel)' : 'Abrir hoja de facturas')) : null));
   var est = function(c){ return (c.factura && c.factura.estado) || 'revisar'; };
   var segm = el('div',{class:'segm'});
   [['todas','Todas'],['error','Error','Con '],['revisar','Revisar','Por '],['correcta','Correctas']].forEach(function(x){
@@ -1964,7 +1966,13 @@ function pintarHilo(h){
   var guardar = el('button',{class:'boton fantasma', id:'guardar', disabled:true, onclick:function(){ guardarTexto(h); }}, 'Guardar borrador');
   var enviarB = el('button',{class:'boton negro', id:'enviar', onclick:function(){ pedirConfirmacion(h); }}, ico('enviar'), h.whatsapp ? 'Enviar por WhatsApp' : 'Enviar');
   var nota = null;
-  if (h.whatsapp){
+  if (LOCAL){
+    texto.readOnly = true;
+    guardar = el('button',{class:'boton fantasma', onclick:function(){ copiar(texto.value, estado); }}, 'Copiar');
+    enviarB = el('a',{class:'boton negro', href:(h.borrador && h.borrador.url) || h.gmail, target:'_blank', rel:'noopener'}, ico('enviar'), h.borrador ? 'Revisar y enviar en Gmail' : 'Contestar en Gmail');
+    nota = el('span',{class:'ventana'}, 'Se abre en Gmail con la respuesta ya escrita: la cambias si quieres y pulsas Enviar.');
+  }
+  if (h.whatsapp && !LOCAL){
     var cerrada = !h.whatsapp.qr && (!h.whatsapp.hasta || new Date(h.whatsapp.hasta) <= new Date());
     nota = el('span',{class:'ventana' + (cerrada || !h.whatsapp.conectado ? ' cerrada' : '')},
       !h.whatsapp.conectado ? 'WhatsApp no está conectado: pulsa el nombre del negocio, arriba.' :
@@ -1996,6 +2004,9 @@ function revision(r){
   return caja;
 }
 
+function copiar(t, estado){
+  try { navigator.clipboard.writeText(t).then(function(){ estado.textContent = 'Copiado'; }); } catch (e) { estado.textContent = 'Selecciónalo y cópialo'; }
+}
 function ocupado(si){ ['guardar','enviar','texto'].forEach(function(id){ var e = $(id); if (e && !(e.dataset && e.dataset.bloqueado)) e.disabled = si; }); }
 function avisar(t, error){ var e = $('estado'); if (e){ e.textContent = t; e.className = 'estado' + (error ? ' error' : ''); } }
 function guardarTexto(h){
