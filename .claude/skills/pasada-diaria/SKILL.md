@@ -49,11 +49,10 @@ Los correos sospechosos no van a ningún subagente: no se contestan.
   "correos": [
     {
       "id": "id del mensaje", "hilo": "id del hilo", "url": "enlace al correo en Gmail",
-      "fecha": "fecha y hora del correo (ISO)", "mensaje": "lo que escribe el cliente, tal cual (hasta 800 caracteres)",
       "de": "Nombre <correo>", "cliente": "Cliente o «nuevo»", "asunto": "…", "tipo": "Factura",
       "estado": "listo | revisar | sospechoso | sin borrador",
       "resumen": "Una línea.",
-      "borrador": {"id": "…", "url": "enlace al borrador", "texto": "el borrador tal cual lo has dejado"},
+      "borrador": {"id": "…", "url": "enlace al borrador"},
       "factura": {"numero": "…", "emisor": "…", "estado": "correcta | error | revisar", "motivos": [], "total_factura": 0, "total_correcto": 0, "diferencia": 0, "archivo": "salida/facturas/…pdf",
                   "datos": {"numero": "…", "fecha": "AAAA-MM-DD", "emisor": "…", "nif_emisor": "…", "lineas": [{"base": 0, "tipo_iva": 21}], "cuota_iva": 0, "tipo_irpf": 0, "retencion": 0, "total": 0}}
     }
@@ -63,7 +62,6 @@ Los correos sospechosos no van a ningún subagente: no se contestan.
 
   En `factura.datos` va el mismo JSON que copiaste de la factura para `revisar_factura.py`, tal cual: con él se rellena la hoja de facturas.
   Los minutos ahorrados son una estimación: 4 por factura revisada, 3 por borrador y 1 por correo solo etiquetado.
-- Actualiza el panel del ordenador: `python3 herramientas/panel.py` (lo pinta el programa con este JSON, no tú).
 - Deja el resumen para el panel de Google: ejecuta `python3 herramientas/resumen_gmail.py` y crea un borrador en Gmail (`create_draft`) con exactamente lo que imprime: `to`, `subject`, `body` y `attachments`. Va dirigido a la propia cuenta del negocio y **no se envía nunca**: el panel lo lee de ahí y quita los viejos. Si `create_draft` no acepta el adjunto, repite con `python3 herramientas/resumen_gmail.py --base64`. Si sigue fallando, dilo en el resumen y sigue: el panel funcionará con las etiquetas.
 - **Si la pasada corre en la nube** (rutina en la nube: la carpeta es un repositorio de git clonado para esta tarea) y has cambiado `memoria/MEMORIA.md`, haz commit de ese archivo («Memoria AAAA-MM-DD») y push a la rama principal. Si no, lo aprendido se pierde al acabar. En el ordenador no hace falta.
 - Comprueba el contrato: el número de correos del JSON coincide con los etiquetados y ninguno se ha enviado (tampoco el borrador del resumen).

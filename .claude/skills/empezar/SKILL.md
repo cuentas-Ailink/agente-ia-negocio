@@ -1,6 +1,6 @@
 ---
 name: empezar
-description: Puesta en marcha guiada del agente, paso a paso (negocio, Gmail, primera pasada con su panel, panel en el móvil y tarea de cada mañana; WhatsApp y pasada en la nube, opcionales). Úsala cuando escriban «empezamos», «hola», «¿qué hago?», «configúralo», «ayúdame a instalarlo», «quiero el panel en el móvil», «quiero WhatsApp», «quiero la pasada en la nube», o la primera vez que abren la carpeta.
+description: Puesta en marcha guiada del agente, paso a paso (negocio, Gmail, primera pasada, panel en el móvil y tarea de cada mañana; WhatsApp y pasada en la nube, opcionales). Úsala cuando escriban «empezamos», «hola», «¿qué hago?», «configúralo», «ayúdame a instalarlo», «quiero WhatsApp», «quiero la pasada en la nube», o la primera vez que abren la carpeta.
 ---
 
 # Puesta en marcha
@@ -35,14 +35,13 @@ Si «estado.py» dice que hay algo mal montado, ejecuta `python3 herramientas/co
 
 - Explica en una línea qué va a pasar: «Voy a leer los correos de la bandeja, etiquetarlos y dejar respuestas en borrador. No envío nada ni borro nada».
 - Pide el OK y, con él, usa la skill `pasada-diaria`.
-- Al acabar, abre el panel con `python3 herramientas/panel.py --abrir` y di qué mirar primero: «Necesita a una persona». Cada correo se abre con su respuesta escrita y el botón «Revisar y enviar en Gmail».
-- Dile que a partir de ahora, para verlo, basta con escribir «abre el panel».
+- Al acabar, si el panel ya está instalado (existe `negocio/chat.txt`), ábrelo con `python3 herramientas/panel.py --abrir` y di qué mirar primero: «Necesita a una persona». Si no, no abras nada: di que ya puede ver las etiquetas y los borradores en Gmail y pasa al paso 4, que es donde se monta el panel. No hay otro panel: no generes ni abras `salida/panel.html`.
 
-## 4. El panel también en el móvil (opcional)
+## 4. Panel en el móvil y el ordenador (recomendado)
 
-El panel del ordenador ya funciona sin instalar nada. Este paso es para quien lo quiera además en el móvil. Explica en 2 líneas qué añade: «El mismo panel, en una página privada de tu cuenta de Google: lo ves en el móvil aunque el ordenador esté apagado, envías con un clic sin pasar por Gmail, las facturas van solas a una hoja de Google y es lo que permite conectar WhatsApp. Se instala una vez, en 3 minutos». Pregunta si lo quiere; si ya lo tiene instalado, solo pide la URL que acaba en /exec.
+Explica para qué sirve: «Es tu panel en una página privada de Google: ves el resumen del día y las facturas, y cada correo se abre como un chat para enviar el borrador con un clic. Además, las facturas revisadas van solas a una hoja de Google, lista para contabilidad. Funciona en el móvil, aunque el ordenador esté apagado». Pregunta si ya lo tiene instalado: si es así, solo pide la URL que acaba en /exec.
 
-Si no lo quiere, no insistas: sigue con el paso 5. Puede instalarlo otro día escribiendo «quiero el panel en el móvil».
+Si no lo quiere ahora, no insistas: el agente funciona igual con Gmail (las respuestas quedan en borrador y las envía desde Gmail) y puede instalarlo otro día escribiendo «empezamos».
 
 Si lo quiere instalar, primero pregunta si tiene varias cuentas de Google abiertas en el navegador. Si es así, que lo haga todo en una ventana privada con solo la cuenta del negocio: con varias cuentas, Google falla al dar los permisos («No se puede abrir el archivo en estos momentos»). Después escribe estos pasos **como lista numerada, uno por línea, con los nombres de los botones entre comillas**. No los resumas en un párrafo: la persona los va siguiendo mientras mira la pantalla.
 
